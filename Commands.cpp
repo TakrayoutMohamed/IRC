@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/05/30 21:10:08 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/05/31 18:48:19 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -297,7 +297,7 @@ int KICK_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::ve
                     {
                         buffer = "You have been kicked out of the channel\n";
                         send(it->second , buffer.c_str(), buffer.length(), 0);
-                        for (std::map<std::string, int>::iterator ito = channels[flag].members.begin(); it != channels[flag].members.end(); ito++) {
+                        for (std::map<std::string, int>::iterator ito = channels[flag].members.begin(); ito != channels[flag].members.end(); ito++) {
                             if (cmds.size() <= 3)
                                 buffer = client.nickname + " has kicked " + cmds[2] + " (" + client.nickname + ")\n";
                             else
@@ -339,16 +339,31 @@ int INVITE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::
     std::string buffer;
     if (cmds.size() >= 3)
     {
-        if (cmds[1][0] == '#')
+        for (int i = 0;i < channels.size();i++)
         {
-            //send it in a channel
-            
+            if (cmds[1] == channels[i].channel_name)
+            {
+                flag = i;
+                break ;
+            }
+        }
+        if (flag == -1)
+        {
+            buffer = "Error(403): " + cmds[1] + " :No such channel\n";
+            send(fd, buffer.c_str(), buffer.length(), 0);
         }
         else
         {
-            //send it to a person
+            for (int i = 0; i < channels[i].members.size();i++)
+            {
+                
+            }
             
         }
+    }
+    else
+    {
+        //not enough parameters
     }
 }
 
@@ -356,8 +371,68 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
 
 }
 
-int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::vector<Channels> &channels){
-
+int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client> &mapo, std::vector<Channels> &channels){
+    int flag = 0;
+    std::string buffer;
+    if (cmds.size() >= 3)
+    {
+        if (cmds[1][0] == '#')
+        {
+            for (int i = 0;i < channels.size();i++)
+            {
+                if (cmds[1] == channels[i].channel_name)
+                {
+                    //the channel exist
+                    if (cmds.size() >= 2)
+                    {
+                        for (int j = 2;j < cmds.size();j++)
+                        {
+                            buffer += cmds[j];
+                            if (j+1 < cmds.size())
+                                buffer += " ";
+                        }
+                        for (std::map<std::string, int>::iterator ito = channels[i].members.begin(); ito != channels[i].members.end(); ito++) {
+                            send(ito->second, buffer.c_str(), buffer.length(), 0);
+                        }
+                    }
+                }
+                if (i+1 == channels.size())
+                {
+                    //the channel doesn't exist
+                }
+            }
+            
+        }
+        else
+        {
+            //send it to a person but first look for if the person exist
+            if (cmds.size() >= 3)
+            {
+                for (std::map<int, Client>::iterator ito = mapo.begin(); ito != mapo.end(); ito++) {
+                    if (ito->second.nickname == cmds[2])
+                    {
+                        flag = 1;
+                        for (int j = 2;j < cmds.size();j++)
+                        {
+                            buffer += cmds[j];
+                            if (j+1 < cmds.size())
+                                buffer += " ";
+                        }
+                        send(ito->second.fd, buffer.c_str(), buffer.length(), 0);
+                        break;
+                    }
+                }
+                if (!flag)
+                {
+                    //the user is not in the server
+                }
+            }
+            else
+            {
+                // u need more parameters
+            }
+        }
+    }
 }
 
 int IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std::vector<Channels> channels)
