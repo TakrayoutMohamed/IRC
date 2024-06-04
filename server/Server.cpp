@@ -1,7 +1,6 @@
-#include "./Server.hpp"
 #include "Server.hpp"
 
-Server::Server() : _port(0), _password("   ")
+Server::Server() : _password("DefaultPassword"), _port(0) 
 {
 
 }
@@ -14,13 +13,13 @@ Server::Server(const Server &obj)
 	}
 }
 
-Server::Server(const std::string &password, const std::string &port)
+Server::Server(const std::string &password, const std::string &port) : _password("DefaultPassword"), _port(0)
 {
 	int	port_nbr;
 
-	port_nbr = convertStringToInt(port);
 	if (!isValidPassword(password))
-		throw PasswordNotAcceptedException;
+		throw PasswordNotAcceptedException();
+	port_nbr = convertStringToInt(port);
 	if (!isValidPort(port_nbr))
 		throw PortNotAcceptedException;
 	setPassword(password);
@@ -43,14 +42,29 @@ Server::~Server()
 
 }
 
-void Server::runServer(const std::string &port, const std::string &password) const
+void Server::runServer(const std::string &password, const std::string &port)
 {
-	
+	int	fd_socket;
+	ssize_t n;
+	socklen_t clientLen;
+	struct pollfd       client[OPEN_MAX];
+	struct sockaddr_in  clientaddr, serveraddr;
+	try
+	{
+		Server serv(password, port);
+		std::cout << "_password : " << serv.getPassword() << " _port = " << serv.getPort() << std::endl;
+		
+	}
+	catch (std::exception &e)
+	{
+		std::cerr << "Error: " << std::endl;
+		std::cerr << e.what() << std::endl;
+	};
 }
 
 bool	hasSpace(const std::string &str)
 {
-	int i;
+	size_t i;
 
 	i = 0;
 	while (i < str.length())
@@ -62,11 +76,11 @@ bool	hasSpace(const std::string &str)
 	return (false);
 }
 
-const bool	Server::isValidPassword(const std::string &password) const
+bool	Server::isValidPassword(const std::string &password) const
 {
 	if (password.length() < 4)
 		return (false); /*password has to be more than 4 char in length */
-	if (!hasSpace(password))
+	if (hasSpace(password))
 		return (false); /*password does not accept whitespaces*/
 	return (true);
 }
@@ -82,7 +96,7 @@ int	convertStringToInt(const std::string &str)
 	return (nbr);
 }
 
-const bool Server::isValidPort(const int port) const
+bool Server::isValidPort(const int port) const
 {
 	if (port >= 1024 && port <= 65535)
 		return (true); /*port has to be between 1024 and 65535*/
@@ -117,5 +131,5 @@ const int &Server::getPort(void) const
 
 const char *Server::PortNotAcceptedException::what() const throw()
 {
-    return "Error : port not accepted , the port has to be an integer between 1024 and 65535.";
+	return "Port not accepted , the port has to be an integer between 1024 and 65535.";
 }

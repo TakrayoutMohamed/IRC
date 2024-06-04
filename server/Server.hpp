@@ -16,25 +16,19 @@
 class Server
 {
 	private:
-		int _port;
 		std::string _password;
+		int _port;
 
-		const bool	isValidPassword(const std::string &) const;
-		const bool	isValidPort(const int) const;
+		bool	isValidPassword(const std::string &) const;
+		bool	isValidPort(const int) const;
 	
 	protected:
 		/*setter member functions*/
 		void setPassword(const std::string &);
 		void setPort(const int &);
-		/*getter member functions*/
-		const std::string &getPassword(void) const;
-		const int &getPort(void) const;
 	
-		Server(); //till now no need
 		Server(const Server &obj); //till now no need 
-		Server(const std::string &, const std::string &);
 		const Server &operator=(const Server &obj);//till now no need
-		~Server();//till now no need
 
 		/*EXCEPTIONS : INNER CLASSES*/
 		class	PortNotAcceptedException : public std::exception
@@ -42,7 +36,15 @@ class Server
 			virtual const char *what() const throw();
 		} PortNotAcceptedException;
 	public:
-		void	runServer(const std::string &, const std::string &) const;
+		Server(); //till now no need
+		Server(const std::string &passwd, const std::string &port);
+		~Server();//till now no need
+		static void	runServer(const std::string &password, const std::string &port);
+		/*getter member functions*/
+		const std::string &getPassword(void) const;
+		const int &getPort(void) const;
 };
 
+int	convertStringToInt(const std::string &str);
+bool	hasSpace(const std::string &str);
 #endif

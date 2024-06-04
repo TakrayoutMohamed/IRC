@@ -8,6 +8,5 @@ class PasswordNotAcceptedException : public std::exception
 		/* data */
 	public:
 		virtual const char *what() const throw();
-} PasswordNotAcceptedException;
-
+};
 #endif
