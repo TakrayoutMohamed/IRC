@@ -14,14 +14,17 @@ Server::Server(const Server &obj)
 	}
 }
 
-Server::Server(const std::string &password, const int port)
+Server::Server(const std::string &password, const std::string &port)
 {
+	int	port_nbr;
+
+	port_nbr = convertStringToInt(port);
 	if (!isValidPassword(password))
 		throw PasswordNotAcceptedException;
-	if (!isValidPort(port))
+	if (!isValidPort(port_nbr))
 		throw PortNotAcceptedException;
 	setPassword(password);
-	setPort(port);
+	setPort(port_nbr);
 
 }
 
@@ -29,8 +32,8 @@ const Server &Server::operator=(const Server &obj)
 {
 	if (this != &obj)
 	{
-		this->_port = obj._port;
 		this->_password = obj._password;
+		this->_port = obj._port;
 	}
 	return (*this);
 }
@@ -38,6 +41,11 @@ const Server &Server::operator=(const Server &obj)
 Server::~Server()
 {
 
+}
+
+void Server::runServer(const std::string &port, const std::string &password) const
+{
+	
 }
 
 bool	hasSpace(const std::string &str)
@@ -63,10 +71,25 @@ const bool	Server::isValidPassword(const std::string &password) const
 	return (true);
 }
 
+int	convertStringToInt(const std::string &str)
+{
+	std::stringstream sstream(str);
+	int nbr;
+
+	sstream >> nbr;
+	if (sstream.fail() || sstream.bad())
+		return (-1);
+	return (nbr);
+}
+
 const bool Server::isValidPort(const int port) const
 {
-	return false;
+	if (port >= 1024 && port <= 65535)
+		return (true); /*port has to be between 1024 and 65535*/
+	return (false);
 }
+
+/******************************** setters **********************************/
 
 void	Server::setPassword(const std::string &password)
 {
@@ -76,4 +99,23 @@ void	Server::setPassword(const std::string &password)
 void	Server::setPort(const int &port)
 {
 	this->_port = port;
+}
+
+/******************************** getters **********************************/
+
+const std::string &Server::getPassword(void) const
+{
+	return (this->_password);
+}
+
+const int &Server::getPort(void) const
+{
+	return (this->_port);
+}
+
+/********************************Exceptions*********************************/
+
+const char *Server::PortNotAcceptedException::what() const throw()
+{
+    return "Error : port not accepted , the port has to be an integer between 1024 and 65535.";
 }
