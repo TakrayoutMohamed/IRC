@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/06/04 16:51:02 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/06/04 21:44:28 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ Channels::Channels()
     is_key = false;
     is_topic = false;
     members_limit = 0;
+    topic_time = 0;
 }
 
 std::vector<std::string> split(std::string &str, char sep){
@@ -132,7 +133,7 @@ void    broad_cast(Channels &channel, std::string error, std::string mid, std::s
     std::string buffer;
     for (std::map<std::string, int>::iterator it =  channel.members.begin();it != channel.members.end();it++)
     {
-        buffer = error + channel.channel_name + message;
+        buffer = error + mid + message;
         send(it->second, buffer.c_str(), buffer.length(), 0);
     }
 }
@@ -314,6 +315,7 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
     std::string buffer = "";
     std::vector<std::pair<std::string, std::string>> changes;
     int key = 3;
+    int x = 0;
     if (cmds.size() >= 2)
     {
         //check if channel u wanna mode exist
@@ -537,6 +539,22 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                         }
                     }
                 }
+                buffer1.clear();
+                for (int i = 0;i < changes.size();i++)
+                {
+                    buffer1 += changes[i].first;
+                    if (!changes[i].second.empty())
+                        x++;
+                }
+                if (x)
+                    buffer1 += " ";
+                for (int i = 0;i < changes.size();i++){
+                    buffer1 += changes[i].second;
+                    if (i+1 < changes.size())
+                        buffer1 += " ";
+                }
+                buffer = "ircserver: " + channels[flag].channel_name + " " + client.nickname + " has changed mode:" + buffer1;
+                send(fd, buffer.c_str(), buffer.length(), 0);
             }
             else
             {
@@ -675,20 +693,22 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
     std::string topic;
     if (cmds.size() >= 2)
     {
-        if (check_channel(fd, channels, cmds[2]) > 0)
+        if (check_channel(fd, channels, cmds[1]) >= 0)
         {
-            flag = check_channel(fd, channels, cmds[2]);
+            flag = check_channel(fd, channels, cmds[1]);
             if (channels[flag].is_topic)
             {
                 if (is_admin(channels[flag], client.nickname))
                 {
                     if (cmds.size() == 2)
                     {
-                        //tell him what is the topic of this channel and who set it and what time 
                         buffer = "Topic: " + channels[flag].channel_topic + "\n";
                         send(fd, buffer.c_str(), buffer.length(), 0);
-                        buffer = channels[flag].who_set_topic + "set the topic at: " + std::to_string(channels[flag].topic_time) + "\n";
-                        send(fd, buffer.c_str(), buffer.length(), 0);
+                        if (channels[flag].topic_time)
+                        {
+                            buffer = channels[flag].who_set_topic + "set the topic at: " + std::to_string(channels[flag].topic_time) + "\n";
+                            send(fd, buffer.c_str(), buffer.length(), 0);
+                        }
                     }
                     else if(cmds.size() >= 3)
                     {
@@ -714,8 +734,13 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
             {
                 if (cmds.size() == 2)
                     {
-                        //tell him what is the topic of this channel and who set it and what time 
-                        // buffer = 
+                        buffer = "Topic: " + channels[flag].channel_topic + "\n";
+                        send(fd, buffer.c_str(), buffer.length(), 0);
+                        if (channels[flag].topic_time)
+                        {
+                            buffer = channels[flag].who_set_topic + "set the topic at: " + std::to_string(channels[flag].topic_time) + "\n";
+                            send(fd, buffer.c_str(), buffer.length(), 0);
+                        }
                     }
                     else if(cmds.size() >= 3)
                     {
@@ -745,62 +770,51 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
     std::string buffer;
     if (cmds.size() >= 3)
     {
-        if (cmds[1][0] == '#')
-        {
-            for (int i = 0;i < channels.size();i++)
+        if (check_channel(fd, channels, cmds[1]) >= 0){
+            //send it to all people in a channel because its a message to a channel
+            flag = check_channel(fd, channels, cmds[1]);
+            for (int j = 2;j < cmds.size();j++)
             {
-                if (cmds[1] == channels[i].channel_name)
-                {
-                    //the channel exist
-                    if (cmds.size() >= 2)
-                    {
-                        for (int j = 2;j < cmds.size();j++)
-                        {
-                            buffer += cmds[j];
-                            if (j+1 < cmds.size())
-                                buffer += " ";
-                        }
-                        for (std::map<std::string, int>::iterator ito = channels[i].members.begin(); ito != channels[i].members.end(); ito++) {
-                            send(ito->second, buffer.c_str(), buffer.length(), 0);
-                        }
-                    }
-                }
-                if (i+1 == channels.size())
-                {
-                    //the channel doesn't exist
-                }
+                buffer += cmds[j];
+                if (j+1 < cmds.size())
+                    buffer += " ";
             }
-            
+            for (std::map<std::string, int>::iterator it =  channels[flag].members.begin();it != channels[flag].members.end();it++)
+            {
+                buffer = "ircserver: " + cmds[1] + " " + mapo[fd].nickname + " " + buffer + "\n";
+                send(it->second, buffer.c_str(), buffer.length(), 0);
+            }
         }
         else
         {
-            //send it to a person but first look for if the person exist
-            if (cmds.size() >= 3)
-            {
-                for (std::map<int, Client>::iterator ito = mapo.begin(); ito != mapo.end(); ito++) {
-                    if (ito->second.nickname == cmds[2])
-                    {
-                        flag = 1;
-                        for (int j = 2;j < cmds.size();j++)
-                        {
-                            buffer += cmds[j];
-                            if (j+1 < cmds.size())
-                                buffer += " ";
-                        }
-                        send(ito->second.fd, buffer.c_str(), buffer.length(), 0);
-                        break;
-                    }
-                }
-                if (!flag)
+            for (std::map<int, Client>::iterator ito = mapo.begin(); ito != mapo.end(); ito++) {
+                if (ito->second.nickname == cmds[1])
                 {
-                    //the user is not in the server
+                    flag = 1;
+                    for (int j = 2;j < cmds.size();j++)
+                    {
+                        buffer += cmds[j];
+                        if (j+1 < cmds.size())
+                            buffer += " ";
+                    }
+                    buffer += "\n";
+                    buffer = "ircserver: " + mapo[fd].nickname + " " + buffer + "\n";
+                    send(ito->second.fd, buffer.c_str(), buffer.length(), 0);
+                    break;
                 }
             }
-            else
+            if (!flag)
             {
-                // u need more parameters
+                //<QuakeNet> Error(401): sdgsdgh No such nick
+                buffer = "ircserver error(401): " + cmds[2] + "No such nick\n";
+                send(fd, buffer.c_str(), buffer.length(), 0);
             }
         }
+    }
+    else
+    {
+        buffer = "Error(461): " + cmds[0] + " :Not enough parameters\n";
+        send(fd, buffer.c_str(), buffer.length(), 0);
     }
 }
 
