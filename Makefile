@@ -12,6 +12,8 @@ OBJCPP = $(CPPFILES:.cpp=.o)
 
 all: $(NAME)
 
+test: 
+	$(COMPILER) $(FLAGS) tets.cpp -o testing_mode
 $(NAME): $(OBJCPP)
 	$(COMPILER) $(FLAGS) $(OBJCPP) -o $(NAME)
 
@@ -25,3 +27,19 @@ fclean: clean
 	rm -rf $(NAME)
 
 re: fclean all
+
+# i > invite
+# k > key
+# l > limit
+# o > operator
+# t > topic
+
+# i = +i > set invite
+# -i > remove invite
+
+# i and t doesn't need parameters
+# same goes for -l
+
+# -kkkkkkkkkkkk+lllkkkkkkk
+
+# mode #ch1 

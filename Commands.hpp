@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:53 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/05/30 18:14:38 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/06/04 11:16:27 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <vector>
 #include <map>
 #include <sstream>
+#include <cstring>
 #include <ctime>
 #include <sys/socket.h>
 
@@ -41,30 +42,10 @@ typedef struct parsing_command
     std::vector<std::string> channels_key;
 }   p_c;
 
-typedef struct s_mode
-{
-    std::string l;
-    int ml;
-    int pl;
-    std::string k;
-    int mk;
-    int pk;
-    std::string o;
-    int mo;
-    int po;
-    std::string i;
-    int mi;
-    int pi;
-    std::string t;
-    int mt;
-    int pt;
-}   Mode;
-
 class Client
 {
     public:
         std::string nickname;
-        std::string password;
         std::string ip;
         int fd;
         std::vector<std::pair<std::string, bool>> inside_channel;
@@ -74,17 +55,19 @@ class Client
 class Channels
 {
     public:
-        std::string channel_name;
-        std::string channel_topic;
-        std::string channel_key;
-        bool        is_invite_only;
-        std::vector<std::string> invite_list;
-        std::vector<std::string> admin_list;
-        bool is_limit;
-        int members_limit;
-        std::map<std::string, int> members;
-        long long channel_create_time;
+        std::string                 channel_name;
+        bool                        is_invite_only;         //invite
+        std::vector<std::string>    invite_list;
+        bool                        is_limit;               //limit
+        int                         members_limit;
+        bool                        is_topic;               //topic
+        std::string                 channel_topic;
+        bool                        is_key;                 //key
+        std::string                 channel_key;
+        std::vector<std::string>    admin_list;
+        std::map<std::string, int>  members;
+        long long                   channel_create_time;
         Channels();
 };
 
-int IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std::vector<Channels> channels);
+void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std::vector<Channels> channels);

@@ -2,10 +2,7 @@
 
 void    start(int fd, std::string &str, std::map<int, Client> &client_map, std::vector<Channels> channels)
 {
-    if (IS_COMMAND_VALID(fd, str, client_map, channels))
-        return ;
-    // RUN_COMMAND(cmd);
-    std::cout << "OK" << std::endl;
+    IS_COMMAND_VALID(fd, str, client_map, channels);
 }
 
 int main()
