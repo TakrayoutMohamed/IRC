@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/06/04 15:51:58 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/06/04 16:51:02 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,11 +128,11 @@ int check_channel(int fd, std::vector<Channels> &channels, std::string &channel_
     return (flag);
 }
 
-void    broad_cast(Channels &channels,std::string error, std::string &message){
+void    broad_cast(Channels &channel, std::string error, std::string mid, std::string message){
     std::string buffer;
-    for (std::map<std::string, int>::iterator it =  channels.members.begin();it != channels.members.end();it++)
+    for (std::map<std::string, int>::iterator it =  channel.members.begin();it != channel.members.end();it++)
     {
-        buffer = error + channels.channel_name + message;
+        buffer = error + channel.channel_name + message;
         send(it->second, buffer.c_str(), buffer.length(), 0);
     }
 }
@@ -672,12 +672,65 @@ int INVITE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::
 int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::vector<Channels> &channels){
     int flag = -1;
     std::string buffer;
+    std::string topic;
     if (cmds.size() >= 2)
     {
         if (check_channel(fd, channels, cmds[2]) > 0)
         {
             flag = check_channel(fd, channels, cmds[2]);
-            if (client)
+            if (channels[flag].is_topic)
+            {
+                if (is_admin(channels[flag], client.nickname))
+                {
+                    if (cmds.size() == 2)
+                    {
+                        //tell him what is the topic of this channel and who set it and what time 
+                        buffer = "Topic: " + channels[flag].channel_topic + "\n";
+                        send(fd, buffer.c_str(), buffer.length(), 0);
+                        buffer = channels[flag].who_set_topic + "set the topic at: " + std::to_string(channels[flag].topic_time) + "\n";
+                        send(fd, buffer.c_str(), buffer.length(), 0);
+                    }
+                    else if(cmds.size() >= 3)
+                    {
+                        for (int i = 2;i < cmds.size();i++)
+                        {
+                            topic += cmds[i];
+                            if (i+1 < cmds.size())
+                                topic += " ";
+                        }
+                        channels[flag].who_set_topic = client.nickname;
+                        channels[flag].topic_time = time(0);
+                        channels[flag].channel_topic = topic;
+                        broad_cast(channels[flag], client.nickname, " has set topic: ", topic);
+                    }
+                }
+                else
+                {
+                    buffer = "Error(482): " + channels[flag].channel_name + " :You're not channel operato\n";
+                    send(fd, buffer.c_str(), buffer.length(), 0);
+                }
+            }
+            else
+            {
+                if (cmds.size() == 2)
+                    {
+                        //tell him what is the topic of this channel and who set it and what time 
+                        // buffer = 
+                    }
+                    else if(cmds.size() >= 3)
+                    {
+                        for (int i = 2;i < cmds.size();i++)
+                        {
+                            topic += cmds[i];
+                            if (i+1 < cmds.size())
+                                topic += " ";
+                        }
+                        channels[flag].who_set_topic = client.nickname;
+                        channels[flag].topic_time = time(0);
+                        channels[flag].channel_topic = topic;
+                        broad_cast(channels[flag], client.nickname, " has set topic: ", topic);
+                    }
+            }
         }
     }
     else

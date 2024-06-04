@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:53 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/06/04 11:16:27 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/06/04 16:06:53 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,8 @@ class Channels
         int                         members_limit;
         bool                        is_topic;               //topic
         std::string                 channel_topic;
+        long long                   topic_time;
+        std::string                 who_set_topic;
         bool                        is_key;                 //key
         std::string                 channel_key;
         std::vector<std::string>    admin_list;
