@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/06/04 21:45:11 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/06/05 21:59:05 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,6 +188,8 @@ void    join_channel(std::vector<Channels> &channels, p_c &command, int index, C
     }
 }
 
+//if the someone was invited he can join without a key and even if the channel is in the limit
+//if the user is not invited u check if the channel invite only and if it exceed the limit of channel members
 int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::vector<Channels> &channels)
 {
     int p = 2;
@@ -358,8 +360,6 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                     send(fd, buffer.c_str(), buffer.length(), 0);
                     return ;
                 }
-                // buffer = client.nickname + "!~@" + client.ip + "Mode " + channels[flag].channel_name + "+i\n";
-                // send(fd, buffer.c_str(), buffer.length(), 0);
                 for (int i = 0;i < buffer1.length();i +=2)
                 {
                     if (!strncmp((const char *)buffer1[i], "+i", 2))
@@ -765,6 +765,7 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
     }
 }
 
+//need to handle sending to multiple clients a message the contain multiple words
 int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client> &mapo, std::vector<Channels> &channels){
     int flag = 0;
     std::string buffer;
