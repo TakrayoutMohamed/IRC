@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/06/04 21:44:28 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/06/04 21:45:11 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -805,8 +805,7 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
             }
             if (!flag)
             {
-                //<QuakeNet> Error(401): sdgsdgh No such nick
-                buffer = "ircserver error(401): " + cmds[2] + "No such nick\n";
+                buffer = "ircserver error(401): " + cmds[2] + " No such nick\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
             }
         }

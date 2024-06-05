@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:53 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/06/04 16:06:53 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/06/05 13:13:49 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ typedef struct parsing_command
 
 class Client
 {
+    
     public:
         std::string nickname;
         std::string ip;

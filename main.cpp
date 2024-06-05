@@ -1,6 +1,6 @@
 #include "Commands.hpp"
 
-void    start(int fd, std::string &str, std::map<int, Client> &client_map, std::vector<Channels> channels)
+void    start(int fd, std::string &str, std::map<int, Client> &client_map, std::vector<Channels> &channels)
 {
     IS_COMMAND_VALID(fd, str, client_map, channels);
 }
