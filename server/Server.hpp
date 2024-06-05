@@ -11,6 +11,7 @@
 # include <netdb.h> /*gethostbyname()*/
 # include <fcntl.h> /*fcntl()*/
 # include <poll.h> /*poll()*/
+# include <vector>
 # include "./../exception/PasswordNotAcceptedException.hpp"
 
 class Server
@@ -18,6 +19,11 @@ class Server
 	private:
 		std::string _password;
 		int _port;
+		int	_serverSocket;
+		unsigned int _clientFd;
+		std::vector<pollfd> _clientsFds;
+		socklen_t _clientLen, _serverLen;
+		struct sockaddr_in  _clientAddr, _serverAddr;
 
 		bool	isValidPassword(const std::string &) const;
 		bool	isValidPort(const int) const;
@@ -43,6 +49,19 @@ class Server
 		/*getter member functions*/
 		const std::string &getPassword(void) const;
 		const int &getPort(void) const;
+	/************************* Methods ************************/
+	private:
+		void	openSocket(void);
+		int		bindSocket(void);
+		int		listenSocket(void);
+		int		acceptClientSocket(void);
+		int		saveClientFd(void);
+		int		deleteClientFd(int fd);
+		int		readClientFd(int fd);
+		/// @brief runing poll() system call to check if there are new ready file descriptors 
+		/// @return the number of ready file descriptors
+		int		checkFdsForNewEvents(void);
+
 };
 
 int	convertStringToInt(const std::string &str);

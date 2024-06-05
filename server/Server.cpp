@@ -44,15 +44,34 @@ Server::~Server()
 
 void Server::runServer(const std::string &password, const std::string &port)
 {
-	int	fd_socket;
-	ssize_t n;
-	socklen_t clientLen;
-	struct pollfd       client[OPEN_MAX];
-	struct sockaddr_in  clientaddr, serveraddr;
 	try
 	{
+		int	readyFds;
 		Server serv(password, port);
 		std::cout << "_password : " << serv.getPassword() << " _port = " << serv.getPort() << std::endl;
+		serv.openSocket();
+		serv.bindSocket();
+		serv.listenSocket();
+		while (1)
+		{
+			readyFds = serv.checkFdsForNewEvents();
+			if (serv._clientsFds[0].events & POLLIN)
+			{
+				serv.acceptClientSocket();
+				serv.saveClientFd();
+				readyFds--;
+				if (readyFds <= 0)
+					continue ;
+				for (int i = 1;readyFds > 0 && i < serv._clientsFds.size(); i++)
+				{
+					if (serv._clientsFds[i].revents & (POLLRDNORM | POLLERR))
+					{
+						
+					}
+				}
+				//here new client connexion
+			}
+		}
 		
 	}
 	catch (std::exception &e)
@@ -125,6 +144,84 @@ const std::string &Server::getPassword(void) const
 const int &Server::getPort(void) const
 {
 	return (this->_port);
+}
+
+void Server::openSocket(void)
+{
+	this->_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+	if (this->_serverSocket == -1)
+		throw OpenServerSocketException();
+	if (fcntl(_serverSocket, F_SETFL, O_NONBLOCK) == -1)
+		throw NonBlockServerSocketException();
+}
+
+int Server::bindSocket(void)
+{
+	_serverLen = sizeof(_serverAddr);
+	bzero(&_serverAddr, _serverLen);
+	_serverAddr.sin_family = AF_INET;
+	_serverAddr.sin_port = htons(_port);
+	_serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	if (bind(_serverSocket, (sockaddr *) &_serverAddr, _serverLen) == -1)
+		throw CouldNotBindServerSocketException();
+    return 0;
+}
+
+int Server::listenSocket(void)
+{
+	pollfd tmp;
+
+	tmp.fd = _serverSocket;
+	tmp.events = POLLIN | POLLRDNORM;
+	tmp.revents = 0;
+	if (listen(_serverSocket, OPEN_MAX) == -1)
+		throw CouldNotListenServerSocketException();
+	_clientsFds.push_back(tmp);
+    return 0;
+}
+
+int Server::acceptClientSocket(void)
+{
+	_clientLen = sizeof(_clientAddr);
+	bzero(&_clientAddr, _clientLen);
+	_clientFd = accept(_serverSocket, (sockaddr *) &_clientAddr, &_clientLen);
+	if (_clientFd == -1)
+		throw NewClientNotAcceptedException();
+	if (_clientsFds.size() >= OPEN_MAX)
+		std::cerr << "Error Too many Clients "<< std::endl;
+    return 0;
+}
+
+int Server::saveClientFd(void)
+{
+	pollfd tmp;
+
+	tmp.fd = _clientFd;
+	tmp.events = POLLIN | POLLRDNORM;
+	tmp.revents = 0;
+	//here check the authentication
+	_clientsFds.push_back(tmp);
+    return 0;
+}
+
+int Server::deleteClientFd(int fd)
+{
+    return 0;
+}
+
+int Server::readClientFd(int fd)
+{
+    return 0;
+}
+
+int Server::checkFdsForNewEvents(void)
+{
+	int readyFds;
+
+	readyFds = poll(_clientsFds.begin().base(), _clientsFds.size(), 0);
+	if (readyFds == -1)
+		throw PollCheckFdsEventsException();
+    return (readyFds);
 }
 
 /********************************Exceptions*********************************/
