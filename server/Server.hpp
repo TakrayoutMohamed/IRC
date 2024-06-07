@@ -54,13 +54,13 @@ class Server
 		void	openSocket(void);
 		int		bindSocket(void);
 		int		listenSocket(void);
+		/// @brief runing poll() system call to check if there are new ready file descriptors 
+		/// @return the number of ready file descriptors
+		int		checkFdsForNewEvents(void);
 		int		acceptClientSocket(void);
 		int		saveClientFd(void);
 		int		deleteClientFd(int fd);
 		int		readClientFd(int fd);
-		/// @brief runing poll() system call to check if there are new ready file descriptors 
-		/// @return the number of ready file descriptors
-		int		checkFdsForNewEvents(void);
 
 };
 

@@ -62,17 +62,39 @@ void Server::runServer(const std::string &password, const std::string &port)
 				readyFds--;
 				if (readyFds <= 0)
 					continue ;
-				for (int i = 1;readyFds > 0 && i < serv._clientsFds.size(); i++)
-				{
-					if (serv._clientsFds[i].revents & (POLLRDNORM | POLLERR))
-					{
-						
-					}
-				}
 				//here new client connexion
 			}
+			for (int i = 1;readyFds > 0 && i < serv._clientsFds.size(); i++)
+			{
+				if (serv._clientsFds[i].revents & (POLLRDNORM | POLLERR))
+				{
+					char msg[1024];
+					bzero(msg, 1024);
+					ssize_t recievedLen;
+					recievedLen = recv(serv._clientsFds[i].fd, msg, 1024, 0);
+					if (recievedLen > 512)
+					{
+						// send a responce to the client that sended the msg that says that the msg is too long
+
+					}
+					else if (recievedLen == 0)
+					{
+						//here client closed connection than you should remove it since its not exist any more
+					}
+					else if (recievedLen < 0)
+					{
+						//here client aborted connection than you should remove it since its not exist any more
+					}
+					else
+					{
+						
+						//here the message is good so i have to pass this msg line to the command part
+					}
+					//here there is an event trigered by a client
+					readyFds--;
+				}
+			}
 		}
-		
 	}
 	catch (std::exception &e)
 	{
@@ -148,11 +170,16 @@ const int &Server::getPort(void) const
 
 void Server::openSocket(void)
 {
+	int	option;
+
+	option = 1;
 	this->_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_serverSocket == -1)
 		throw OpenServerSocketException();
 	if (fcntl(_serverSocket, F_SETFL, O_NONBLOCK) == -1)
 		throw NonBlockServerSocketException();
+	if (setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)) == -1)
+		throw SocketCouldNotReusAddException();
 }
 
 int Server::bindSocket(void)
@@ -178,6 +205,16 @@ int Server::listenSocket(void)
 		throw CouldNotListenServerSocketException();
 	_clientsFds.push_back(tmp);
     return 0;
+}
+
+int Server::checkFdsForNewEvents(void)
+{
+	int readyFds;
+
+	readyFds = poll(_clientsFds.begin().base(), _clientsFds.size(), 0);
+	if (readyFds == -1)
+		throw PollCheckFdsEventsException();
+    return (readyFds);
 }
 
 int Server::acceptClientSocket(void)
@@ -214,15 +251,6 @@ int Server::readClientFd(int fd)
     return 0;
 }
 
-int Server::checkFdsForNewEvents(void)
-{
-	int readyFds;
-
-	readyFds = poll(_clientsFds.begin().base(), _clientsFds.size(), 0);
-	if (readyFds == -1)
-		throw PollCheckFdsEventsException();
-    return (readyFds);
-}
 
 /********************************Exceptions*********************************/
 
