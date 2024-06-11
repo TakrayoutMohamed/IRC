@@ -55,35 +55,41 @@ void Server::runServer(const std::string &password, const std::string &port)
 		while (1)
 		{
 			readyFds = serv.checkFdsForNewEvents();
-			if (serv._clientsFds[0].events & POLLIN)
+			if (serv._socketsFds[0].events & POLLIN)
 			{
 				serv.acceptClientSocket();
-				serv.saveClientFd();
+				serv.saveClientData();
 				readyFds--;
 				if (readyFds <= 0)
 					continue ;
-				//here new client connexion
+				serv.saveClientData();
 			}
-			for (int i = 1;readyFds > 0 && i < serv._clientsFds.size(); i++)
+			for (int i = 1;readyFds > 0 && i < serv._socketsFds.size(); i++)
 			{
-				if (serv._clientsFds[i].revents & (POLLRDNORM | POLLERR))
+				if (serv._socketsFds[i].revents & (POLLRDNORM | POLLERR))
 				{
 					char msg[1024];
 					bzero(msg, 1024);
 					ssize_t recievedLen;
-					recievedLen = recv(serv._clientsFds[i].fd, msg, 1024, 0);
+					recievedLen = recv(serv._socketsFds[i].fd, msg, 1024, 0);
 					if (recievedLen > 512)
 					{
 						// send a responce to the client that sended the msg that says that the msg is too long
-
+						const char *str = "line too long boy!!! \r\n";
+						if (send(serv._socketsFds[i].fd, &str, sizeof(str), 0) == -1)
+						{
+							std::cerr << "There is an error with the send system call." << std::endl;
+							exit(22);
+						}
 					}
-					else if (recievedLen == 0)
+					else if (recievedLen <= 0)
 					{
 						//here client closed connection than you should remove it since its not exist any more
-					}
-					else if (recievedLen < 0)
-					{
-						//here client aborted connection than you should remove it since its not exist any more
+						std::cerr << "the client with fd " << serv._socketsFds[i].fd << " has closed the connection"  << std::endl;
+						serv._socketsFds.erase(serv._socketsFds.begin() + i);
+						close(serv._socketsFds[i].fd);
+						// here i need to use the quit command so that the users 
+						//notified about the close of connection for this client
 					}
 					else
 					{
@@ -101,6 +107,18 @@ void Server::runServer(const std::string &password, const std::string &port)
 		std::cerr << "Error: " << std::endl;
 		std::cerr << e.what() << std::endl;
 	};
+}
+
+void Server::sendMsg(const std::string &msg, int fd) const
+{
+	std::string message;
+	message = msg + "\r\n";
+	send(fd, message.c_str(), message.length(), 0);
+}
+
+void Server::addData(int fd, const Client &client)
+{
+	this->_data[fd] = client;
 }
 
 bool	hasSpace(const std::string &str)
@@ -168,6 +186,16 @@ const int &Server::getPort(void) const
 	return (this->_port);
 }
 
+const unsigned int &Server::getClientFd(void) const
+{
+   return (this->_clientFd);
+}
+
+const std::map<int, Client> &Server::getData(void) const
+{
+    return (this->_data);
+}
+
 void Server::openSocket(void)
 {
 	int	option;
@@ -179,7 +207,7 @@ void Server::openSocket(void)
 	if (fcntl(_serverSocket, F_SETFL, O_NONBLOCK) == -1)
 		throw NonBlockServerSocketException();
 	if (setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)) == -1)
-		throw SocketCouldNotReusAddException();
+		throw SocketCouldNotReuseAddrException();
 }
 
 int Server::bindSocket(void)
@@ -203,7 +231,7 @@ int Server::listenSocket(void)
 	tmp.revents = 0;
 	if (listen(_serverSocket, OPEN_MAX) == -1)
 		throw CouldNotListenServerSocketException();
-	_clientsFds.push_back(tmp);
+	_socketsFds.push_back(tmp);
     return 0;
 }
 
@@ -211,7 +239,7 @@ int Server::checkFdsForNewEvents(void)
 {
 	int readyFds;
 
-	readyFds = poll(_clientsFds.begin().base(), _clientsFds.size(), 0);
+	readyFds = poll(_socketsFds.begin().base(), _socketsFds.size(), 0);
 	if (readyFds == -1)
 		throw PollCheckFdsEventsException();
     return (readyFds);
@@ -224,12 +252,12 @@ int Server::acceptClientSocket(void)
 	_clientFd = accept(_serverSocket, (sockaddr *) &_clientAddr, &_clientLen);
 	if (_clientFd == -1)
 		throw NewClientNotAcceptedException();
-	if (_clientsFds.size() >= OPEN_MAX)
+	if (_socketsFds.size() >= OPEN_MAX)
 		std::cerr << "Error Too many Clients "<< std::endl;
     return 0;
 }
 
-int Server::saveClientFd(void)
+int Server::saveClientData(void)
 {
 	pollfd tmp;
 
@@ -237,7 +265,8 @@ int Server::saveClientFd(void)
 	tmp.events = POLLIN | POLLRDNORM;
 	tmp.revents = 0;
 	//here check the authentication
-	_clientsFds.push_back(tmp);
+	Authenticator::checkClientAuthentication(*this);
+	_socketsFds.push_back(tmp);
     return 0;
 }
 
