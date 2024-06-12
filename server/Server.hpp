@@ -18,21 +18,21 @@
 # include <vector>
 # include <map>
 # include "./Authenticator.hpp"
-# include "./../exception/PasswordNotAcceptedException.hpp"
+# include "./../exception/Exceptions.hpp"
 # include "./Client.hpp"
 
 // class Client;
 class Server
 {
 	private:
-		std::string _password;
-		int _port;
-		int	_serverSocket;
-		unsigned int _clientFd;
-		std::vector<pollfd> _socketsFds;
-		std::map<int, Client> _data;
-		socklen_t _clientLen, _serverLen;
-		struct sockaddr_in  _clientAddr, _serverAddr;
+		std::string				_password;
+		int						_port;
+		int						_serverSocket;
+		int						_clientFd;
+		std::vector<pollfd>		_socketsFds;
+		std::map<int, Client>	_data;
+		socklen_t				_clientLen, _serverLen;
+		struct sockaddr_in		_clientAddr, _serverAddr;
 
 		bool	isValidPassword(const std::string &) const;
 		bool	isValidPort(const int) const;
@@ -59,11 +59,11 @@ class Server
 		void addData(int fd, const Client &client);
 
 		/*setter member functions*/
-		
+		// void setClient(const Client &);
 		/*getter member functions*/
 		const std::string &getPassword(void) const;
 		const int &getPort(void) const;
-		const unsigned int &getClientFd(void) const;
+		const int &getClientFd(void) const;
 		const std::map<int, Client> &getData(void) const;
 	/************************* Methods ************************/
 	private:

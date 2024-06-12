@@ -55,16 +55,15 @@ void Server::runServer(const std::string &password, const std::string &port)
 		while (1)
 		{
 			readyFds = serv.checkFdsForNewEvents();
-			if (serv._socketsFds[0].events & POLLIN)
+			if (serv._socketsFds[0].revents & POLLIN)
 			{
 				serv.acceptClientSocket();
 				serv.saveClientData();
 				readyFds--;
 				if (readyFds <= 0)
 					continue ;
-				serv.saveClientData();
 			}
-			for (int i = 1;readyFds > 0 && i < serv._socketsFds.size(); i++)
+ 			for (size_t i = 1; i < serv._socketsFds.size(); i++)
 			{
 				if (serv._socketsFds[i].revents & (POLLRDNORM | POLLERR))
 				{
@@ -93,7 +92,7 @@ void Server::runServer(const std::string &password, const std::string &port)
 					}
 					else
 					{
-						
+						std::cout << "here the recieved message is good " << std::endl;
 						//here the message is good so i have to pass this msg line to the command part
 					}
 					//here there is an event trigered by a client
@@ -186,7 +185,7 @@ const int &Server::getPort(void) const
 	return (this->_port);
 }
 
-const unsigned int &Server::getClientFd(void) const
+const int &Server::getClientFd(void) const
 {
    return (this->_clientFd);
 }
@@ -259,24 +258,41 @@ int Server::acceptClientSocket(void)
 
 int Server::saveClientData(void)
 {
+	Client client;
 	pollfd tmp;
+	char hostname[_SC_HOST_NAME_MAX + 1];
 
 	tmp.fd = _clientFd;
 	tmp.events = POLLIN | POLLRDNORM;
 	tmp.revents = 0;
 	//here check the authentication
-	Authenticator::checkClientAuthentication(*this);
-	_socketsFds.push_back(tmp);
+	if (Authenticator::checkClientAuthentication(*this, client))
+	{
+		if (gethostname(hostname, _SC_HOST_NAME_MAX))
+		{
+			sendMsg("Quit : error while trying to get the hostname", _clientFd);
+			close(_clientFd);
+			return (1);
+		}
+		client.fd = _clientFd;
+		client.hostName = hostname;
+		client.ip = inet_ntoa(_clientAddr.sin_addr);
+		addData(_clientFd, client);
+		_socketsFds.push_back(tmp);
+		_clientFd = -2;
+	}
     return 0;
 }
 
 int Server::deleteClientFd(int fd)
 {
+	(void) fd;
     return 0;
 }
 
 int Server::readClientFd(int fd)
 {
+	(void) fd;
     return 0;
 }
 
