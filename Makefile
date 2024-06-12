@@ -4,9 +4,18 @@ CPPFLAGS=-Wall -Wextra -Werror -std=c++98
 RM=rm -f
 SERVERPATH= ./server/
 EXCEPTIONPATH= ./exception/
-SRC= $(SERVERPATH)Server.cpp \
-	 $(EXCEPTIONPATH)PasswordNotAcceptedException.cpp \
-	 $(SERVERPATH)Authenticator.cpp
+SRC= $(SERVERPATH)Server.cpp $(SERVERPATH)Authenticator.cpp $(SERVERPATH)Client.cpp \
+	 $(EXCEPTIONPATH)PasswordNotAcceptedException.cpp $(EXCEPTIONPATH)CouldNotBindServerSocketException.cpp\
+	 $(EXCEPTIONPATH)CouldNotListenServerSocketException.cpp $(EXCEPTIONPATH)NewClientNotAcceptedException.cpp \
+	 $(EXCEPTIONPATH)NonBlockServerSocketException.cpp $(EXCEPTIONPATH)OpenServerSocketException.cpp \
+	 $(EXCEPTIONPATH)PollCheckFdsEventsException.cpp $(EXCEPTIONPATH)SocketCouldNotReuseAddrException.cpp
+
+HEADERS= $(SERVERPATH)Server.hpp $(SERVERPATH)Authenticator.hpp $(SERVERPATH)Client.hpp \
+		 $(EXCEPTIONPATH)PasswordNotAcceptedException.hpp $(EXCEPTIONPATH)CouldNotBindServerSocketException.hpp\
+		 $(EXCEPTIONPATH)CouldNotListenServerSocketException.hpp $(EXCEPTIONPATH)NewClientNotAcceptedException.hpp \
+		 $(EXCEPTIONPATH)NonBlockServerSocketException.hpp $(EXCEPTIONPATH)OpenServerSocketException.hpp \
+		 $(EXCEPTIONPATH)PollCheckFdsEventsException.hpp $(EXCEPTIONPATH)SocketCouldNotReuseAddrException.hpp
+
 SRC_MAIN = main.cpp
 
 	
@@ -20,11 +29,11 @@ OBJ_TDD = $(SRC_TDD:.cpp=.o)
 
 all: $(NAME)
 
-$(NAME): $(OBJ)
-		@$(CPP) $(CPPFLAGS) -o $@ $(OBJ)
+$(NAME): $(OBJ_MAIN) $(OBJ)
+		@$(CPP) $(CPPFLAGS) -o $@ $(OBJ_MAIN) $(OBJ)
 		@echo "the files has ben archived successfully"
 
-%.o: %.cpp $(SERVERPATH)Server.hpp $(EXCEPTIONPATH)PasswordNotAcceptedException.hpp
+%.o: %.cpp $(HEADERS)
 		@$(CPP) $(CPPFLAGS) -o $@ -c $<
 		@echo "the file $@ has been created from $<"
 
@@ -44,6 +53,6 @@ test:$(OBJ_TDD) $(OBJ)
 		@$(CPP) $(CPPFLAGS) -o $@ $(OBJ_TDD) $(OBJ) 
 		@echo "the files has ben archived successfully"
 
-%.o: %.cpp $(EXCEPTIONPATH)PasswordNotAcceptedException.hpp $(SERVERPATH)Server.hpp $(SERVERPATH)Authenticator.hpp
+%.o: %.cpp $(HEADERS)
 		@$(CPP) $(CPPFLAGS) -o $@ -c $<
 		@echo "the file $@ has been created from $<"
