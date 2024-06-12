@@ -13,12 +13,6 @@ Authenticator::~Authenticator()
 {
 }
 
-std::string &Authenticator::stringTrim(std::string &str, const char c)
-{
-	// while ()
-	return ;
-}
-
 std::stringstream	&Authenticator::pushLineToStream(const std::string &line)
 {
 	this->_stringStream.clear();
@@ -32,7 +26,7 @@ void Authenticator::toUpper(std::string &str)
 	int i;
 
 	i = 0;
-	while (str[i] != '/0')
+	while (str[i] != '\0')
 	{
 		if (islower(static_cast<int> (str[i])))
 			str[i] = toupper(static_cast<int> (str[i]));
@@ -40,7 +34,7 @@ void Authenticator::toUpper(std::string &str)
 	}
 }
 
-int Authenticator::checkPassword(const Server &obj)
+int Authenticator::checkPassword(const Server &server)
 {
 	std::string pass;
 	std::string password;
@@ -48,7 +42,7 @@ int Authenticator::checkPassword(const Server &obj)
 
 	// if (this->_isPassSet)
 	// {
-	// 	obj.sendMsg("ERR_ALREADYREGISTERED (462)", obj.getClientFd());
+	// 	server.sendMsg("ERR_ALREADYREGISTERED (462)", server.getClientFd());
 	// 	return (true);
 	// }
 	std::getline(this->_stringStream, pass, ' ');
@@ -56,31 +50,91 @@ int Authenticator::checkPassword(const Server &obj)
 	std::getline(this->_stringStream, thirdParam, ' ');
 	if (thirdParam.length() > 0)
 	{
-		obj.sendMsg("TOO MANY PARAMS ()", obj.getClientFd());
+		server.sendMsg("TOO MANY PARAMS ()", server.getClientFd());
 	}
 	if (pass.length() == 0 || password.length() == 0)
 	{
-		obj.sendMsg("ERR_NEEDMOREPARAMS (461)", obj.getClientFd());
+		server.sendMsg("ERR_NEEDMOREPARAMS (461)", server.getClientFd());
 	}
 	this->toUpper(pass);
 	if (pass.compare("PASS") != 0)
 	{
-		obj.sendMsg("ERR_NOTREGISTERED (451)", obj.getClientFd());
+		server.sendMsg("ERR_NOTREGISTERED (451)", server.getClientFd());
 		return (false);
 	}
-	if (obj.getPassword().compare(password) == 0)
+	if (server.getPassword().compare(password) == 0)
 		return (true);
-	obj.sendMsg("ERR_PASSWDMISMATCH (464)", obj.getClientFd());
+	server.sendMsg("ERR_PASSWDMISMATCH (464)", server.getClientFd());
 	return (false);
 }
 
-int Authenticator::checkNick(const Server &obj)
+bool hasUnacceptedChars(const std::string &nick)
 {
-	
-    return 0;
+	for (size_t i = 0; i < nick.size(); i++)
+	{
+		if (isspace(static_cast<int>(nick[i])))
+			return (true);
+		if (nick[i] == ':')
+			return (true);
+		if (nick[i] == '#')
+			return (true);
+		if (nick[i] == '@')
+			return (true);
+	}
+	return (false);
 }
 
-int Authenticator::checkUser(const Server &obj)
+bool	isNickNameInUse(const std::map<int, Client> &data, const std::string &nick)
+{
+	std::map<int, Client>::const_iterator  it = data.begin();
+	while (it != data.end())
+	{
+		if (it->second.hostName.compare(nick) == 0)
+			return (true);
+		it++;
+	}
+	return (false);
+}
+
+int Authenticator::checkNick(const Server &server)
+{
+	std::string firstParam;
+	std::string secondParam;
+
+	if (this->_isPassSet == false)
+	{
+		server.sendMsg("YOU NEED TO SET THE SERVER'S PASSWORD FIRST", server.getClientFd());
+		return (false);
+	}	
+	std::getline(this->_stringStream, firstParam, ' ');
+	std::getline(this->_stringStream, secondParam, ' ');
+	if (hasUnacceptedChars(secondParam))
+	{
+		server.sendMsg("ERR_ERRONEUSNICKNAME (432)", server.getClientFd());
+		return (false);
+	}
+	if (secondParam.length() == 0 || secondParam.length() == 0)
+	{
+		server.sendMsg("ERR_NONICKNAMEISGIVEN (431)", server.getClientFd());
+		return (false);
+	}
+	this->toUpper(firstParam);
+	if (firstParam.compare("NICK") != 0)
+	{
+		server.sendMsg("ERR_NOTREGISTERED (451)", server.getClientFd());
+		return (false);
+	}
+	// if (std::find(server.getData().begin(), secondParam) != server.getData().end())
+	if (isNickNameInUse(server.getData(), secondParam))
+	{
+		server.sendMsg("ERR_NICKNAMEINUSE (433)", server.getClientFd());
+		return (false);
+	}
+	this->setNick(secondParam);
+	return (true);
+}
+
+int Authenticator::checkUser(const Server &server)
 {
 	std::string firstParam;
 	std::string secondParam;
@@ -89,6 +143,11 @@ int Authenticator::checkUser(const Server &obj)
 	std::string fifthParam;
 	std::string sixthParam;
 
+	if (this->_isPassSet == false)
+	{
+		server.sendMsg("YOU NEED TO SET THE SERVER'S PASSWORD FIRST", server.getClientFd());
+		return (false);
+	}
 	std::getline(this->_stringStream, firstParam, ':');
 	std::getline(this->_stringStream, fifthParam, ':');
 	this->pushLineToStream(firstParam);
@@ -114,49 +173,52 @@ int Authenticator::checkUser(const Server &obj)
 	}
 	if (sixthParam.length() > 0)
 	{
-		obj.sendMsg("TOO MANY PARAMS IN USER()", obj.getClientFd());
+		server.sendMsg("TOO MANY PARAMS IN USER()", server.getClientFd());
 		return (false);
 	}
 	if (!firstParam.length() || !secondParam.length() || !thirdParam.length() || !fourthParam.length() || !fifthParam.length())
 	{
-		obj.sendMsg("ERR_NEEDMOREPARAMS (461)", obj.getClientFd());
+		server.sendMsg("ERR_NEEDMOREPARAMS (461)", server.getClientFd());
 		return (false);
 	}
-	this->setUser(secondParam);
+	this->setUser(("~" + secondParam).c_str());
 	this->setRealName(fifthParam);
     return (true);
 }
 
-int Authenticator::checkClientAuthentication(const Server &obj)
+int Authenticator::checkClientAuthentication(Server &server, Client &client)
 {
-	Client client;
 	Authenticator auth;
 	std::string line;
+	char msg[1024];
 
-	//check is the password that entered is corect
 	do
 	{
-		std::getline(std::cin, line);
+		// std::cout << "testing: here is the checkclientauthentication " << std::endl;
+		// server.sendMsg("testing: here is the checkclientauthentication ", server.getClientFd());
+		// std::getline(std::cin, line);
+		recv(client.fd, msg, 1024, 0);
+		line = msg;
 		if (line.length() == 0)
 			continue ;
 		auth.pushLineToStream(line);
 		for (int i = 0; i < 4; i++)
 			line[i] = toupper(static_cast<int>(line[i]));
 		if (line.compare(0, 4, "PASS ", 0, 4) == 0)
-			auth._isPassSet = auth.checkPassword(obj);
-		else if (auth._isPassSet && line.compare(0, 4, "USER ", 0, 4) == 0)
-			auth._isUserSet = auth.checkUser(obj);
-		else if (auth._isPassSet && line.compare(0, 4, "NICK ", 0, 4) == 0)
-			auth._isNickSet = auth.checkNick(obj);
-		else
-			obj.sendMsg("ERR_NOTREGISTRED (451)", obj.getClientFd());
+			auth._isPassSet = auth.checkPassword(server);
+		else if (line.compare(0, 4, "USER ", 0, 4) == 0)
+			auth._isUserSet = auth.checkUser(server);
+		else if (line.compare(0, 4, "NICK ", 0, 4) == 0)
+			auth._isNickSet = auth.checkNick(server);
+		else if (line.length() > 0)
+			server.sendMsg("ERR_NOTREGISTRED (451)", server.getClientFd());
 		line.clear();
 		line = "";
 	} while (!auth._isNickSet || !auth._isUserSet || !auth._isPassSet);
-	
-	
-	//check is the nick or the user correct
-
+	client.nickName = auth._nick;
+	client.realName = auth._realName;
+	client.userName = auth._user;
+	return (true);
 }
 
 /******************setters*********************/

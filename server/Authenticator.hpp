@@ -4,6 +4,7 @@
 # include "./Client.hpp"
 # include <iostream>
 
+class Server;
 
 class Authenticator
 {
@@ -20,16 +21,14 @@ class Authenticator
 	public:
 		Authenticator(/* args */);
 		~Authenticator();
-        std::string &stringTrim(std::string &str, const char c);
         std::stringstream &pushLineToStream(const std::string &line);
 		void		toUpper(std::string &str);
         int			checkPassword(const Server &obj);
-        int			checkNickUser(const Server &obj);
 		int			checkNick(const Server &obj);
 		int			checkUser(const Server &obj);
         /// @brief 		this member meant to check if the client entered his information as it should (password , user , nick ,realname)
         /// @param obj  an obj of the server
-        static int checkClientAuthentication(const Server &obj);
+        static int checkClientAuthentication(Server &server, Client &client);
 		/*setters*/
 
 		void		setNick(const std::string &nick);
