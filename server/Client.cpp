@@ -7,6 +7,7 @@ Client::Client(/* args */)
 	_isPassSet = false;
 	_isNickSet = false;
 	_isUserSet = false;
+	bufferString = "";
 	nickName = "";
 	userName = "";
 	realName = "";
@@ -29,6 +30,7 @@ const Client &Client::operator=(const Client &obj)
 		this->_isPassSet		= obj._isPassSet;
 		this->_isNickSet		= obj._isNickSet;
 		this->_isUserSet		= obj._isUserSet;
+		this->bufferString		= obj.bufferString;
 		this->isAuthenticated	= obj.isAuthenticated;
 		this->fd				= obj.fd;
 		this->hostName  		= obj.hostName;

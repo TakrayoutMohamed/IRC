@@ -75,6 +75,11 @@ class Server
 		int		checkFdsForNewEvents(void);
 		int		acceptClientSocket(void);
 		int		saveClientData(void);
+		/// @brief 
+		/// @param line the message sended by a client
+		/// @param bufferString the previous message sended by a client and it does not has a new line
+		/// @return true if the line has a new line char on it
+		bool	handleCtrlD(std::string &line, std::string &bufferString);
 		int		deleteClientFd(int fd);
 		int		readClientFd(int fd);
 

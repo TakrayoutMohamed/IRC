@@ -42,21 +42,6 @@ Server::~Server()
 
 }
 
-
-// void printClientDataa(const Client &client)
-// {
-// 	std::cout << "*************************************" << std::endl;
-// 	std::cout << "isAuthenticated = {"<< client.isAuthenticated <<"}" << std::endl;
-// 	std::cout << "nickName = {"<< client.nickName <<"}" << std::endl;
-// 	std::cout << "userName = {"<< client.userName <<"}" << std::endl;
-// 	std::cout << "realName = {"<< client.realName <<"}" << std::endl;
-// 	std::cout << "hostName = {"<< client.hostName <<"}" << std::endl;
-// 	std::cout << "serverName = {"<< client.serverName <<"}" << std::endl;
-// 	std::cout << "ip = {"<< client.ip <<"}" << std::endl;
-// 	std::cout << "fd = {"<< client.fd <<"}" << std::endl;
-// 	std::cout << "*************************************" << std::endl;
-// }
-
 void Server::runServer(const std::string &password, const std::string &port)
 {
 	try
@@ -67,6 +52,7 @@ void Server::runServer(const std::string &password, const std::string &port)
 		serv.openSocket();
 		serv.bindSocket();
 		serv.listenSocket();
+		signal(SIGPIPE, SIG_IGN);
 		while (1)
 		{
 			readyFds = serv.checkFdsForNewEvents();
@@ -85,43 +71,45 @@ void Server::runServer(const std::string &password, const std::string &port)
 					char msg[1024];
 					bzero(msg, 1024);
 					ssize_t recievedLen;
-					Client &trigeredClient = serv.getData().find(serv._socketsFds[i].fd)->second;
+					Client &triggeredClient = serv.getData().find(serv._socketsFds[i].fd)->second;
 					recievedLen = recv(serv._socketsFds[i].fd, msg, 1024, 0);
+					std::string line(msg);
+					if (!serv.handleCtrlD(line, triggeredClient.bufferString))
+					{
+						readyFds--;
+						continue ;
+					}
 					if (recievedLen > 512)
 					{
-						// send a responce to the client that sended the msg that says that the msg is too long
-						serv.sendMsg("line too long boy!!!", trigeredClient.fd);
+						// send a response to the client that sended the msg that says that the msg is too long
+						serv.sendMsg("line too long boy!!!", triggeredClient.fd);
 					}
 					else if (recievedLen <= 0)
 					{
 						//here client closed connection than you should remove it since its not exist any more
 						std::cerr << "the client with fd " << serv._socketsFds[i].fd << " has closed the connection"  << std::endl;
 						close(serv._socketsFds[i].fd);
-						serv.getData().erase(trigeredClient.fd);
+						serv.getData().erase(triggeredClient.fd);
 						serv._socketsFds.erase(serv._socketsFds.begin() + i, serv._socketsFds.begin() + i + 1);
 						// here i need to use the quit command so that the users 
 						//notified about the close of connection for this client
 					}
 					else
 					{
-						std::string line(msg);
-						if (trigeredClient.isAuthenticated == false)
-							Authenticator::checkClientAuthentication(serv, trigeredClient, line);
+						if (triggeredClient.isAuthenticated == false)
+							Authenticator::checkClientAuthentication(serv, triggeredClient, line);
 						else
 						{
-							std::cout << "the client with fd = {"<< trigeredClient.fd <<"} is authenticated" << std::endl;
-							std::cout << "nickName = {"<< trigeredClient.nickName <<"}" << std::endl;
-							std::cout << "userName = {"<< trigeredClient.userName <<"}" << std::endl;
-							std::cout << "realName = {"<< trigeredClient.realName <<"}" << std::endl;
-							std::cout << "hostName = {"<< trigeredClient.hostName <<"}" << std::endl;
-							std::cout << "serverName = {"<< trigeredClient.serverName <<"}" << std::endl;
+							std::cout << "the client with fd = {"<< triggeredClient.fd <<"} is authenticated" << std::endl;
+							std::cout << "nickName = {"<< triggeredClient.nickName <<"}" << std::endl;
+							std::cout << "userName = {"<< triggeredClient.userName <<"}" << std::endl;
+							std::cout << "realName = {"<< triggeredClient.realName <<"}" << std::endl;
+							std::cout << "hostName = {"<< triggeredClient.hostName <<"}" << std::endl;
+							std::cout << "serverName = {"<< triggeredClient.serverName <<"}" << std::endl;
 							std::cout << "here the recieved message is:{" << line <<"}" << std::endl;
 							//here the message is good so i have to pass this msg line to the command part
 						}
 					}
-					// std::cout << "from server .cpp " << std::endl;
-					// printClientDataa(trigeredClient);
-					//here there is an event trigered by a client
 					readyFds--;
 				}
 			}
@@ -311,18 +299,26 @@ int Server::saveClientData(void)
     return 0;
 }
 
-int Server::deleteClientFd(int fd)
+bool Server::handleCtrlD(std::string &line, std::string &bufferString)
 {
-	(void) fd;
-    return 0;
+	if (line.length() == 0)
+		return (true);
+	if (line.find('\n') == std::string::npos)
+	{
+		bufferString.append(line);
+		return (false);
+	}
+	if(bufferString.length() > 0)
+	{
+		bufferString.append(line);
+		line.clear();
+		line = "";
+		line.append(bufferString);
+		bufferString.clear();
+		bufferString = "";
+	}
+	return (true);
 }
-
-int Server::readClientFd(int fd)
-{
-	(void) fd;
-    return 0;
-}
-
 
 /********************************Exceptions*********************************/
 

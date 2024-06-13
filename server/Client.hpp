@@ -13,6 +13,7 @@ class Client
         bool		_isPassSet;
 		bool		_isNickSet;
 		bool		_isUserSet;
+        std::string bufferString;
         std::string nickName;
         std::string userName;
         std::string realName;
