@@ -56,6 +56,8 @@ void Server::runServer(const std::string &password, const std::string &port)
 		while (1)
 		{
 			readyFds = serv.checkFdsForNewEvents();
+			if (readyFds == 0)
+				continue ;
 			if (serv._socketsFds[0].revents & POLLIN)
 			{
 				serv.acceptClientSocket();
@@ -66,52 +68,9 @@ void Server::runServer(const std::string &password, const std::string &port)
 			}
  			for (size_t i = 1; i < serv._socketsFds.size(); i++)
 			{
-				if (serv._socketsFds[i].revents & (POLLRDNORM | POLLERR))
-				{
-					char msg[1024];
-					bzero(msg, 1024);
-					ssize_t recievedLen;
-					Client &triggeredClient = serv.getData().find(serv._socketsFds[i].fd)->second;
-					recievedLen = recv(serv._socketsFds[i].fd, msg, 1024, 0);
-					std::string line(msg);
-					if (!serv.handleCtrlD(line, triggeredClient.bufferString))
-					{
-						readyFds--;
-						continue ;
-					}
-					if (recievedLen > 512)
-					{
-						// send a response to the client that sended the msg that says that the msg is too long
-						serv.sendMsg("line too long boy!!!", triggeredClient.fd);
-					}
-					else if (recievedLen <= 0)
-					{
-						//here client closed connection than you should remove it since its not exist any more
-						std::cerr << "the client with fd " << serv._socketsFds[i].fd << " has closed the connection"  << std::endl;
-						close(serv._socketsFds[i].fd);
-						serv.getData().erase(triggeredClient.fd);
-						serv._socketsFds.erase(serv._socketsFds.begin() + i, serv._socketsFds.begin() + i + 1);
-						// here i need to use the quit command so that the users 
-						//notified about the close of connection for this client
-					}
-					else
-					{
-						if (triggeredClient.isAuthenticated == false)
-							Authenticator::checkClientAuthentication(serv, triggeredClient, line);
-						else
-						{
-							std::cout << "the client with fd = {"<< triggeredClient.fd <<"} is authenticated" << std::endl;
-							std::cout << "nickName = {"<< triggeredClient.nickName <<"}" << std::endl;
-							std::cout << "userName = {"<< triggeredClient.userName <<"}" << std::endl;
-							std::cout << "realName = {"<< triggeredClient.realName <<"}" << std::endl;
-							std::cout << "hostName = {"<< triggeredClient.hostName <<"}" << std::endl;
-							std::cout << "serverName = {"<< triggeredClient.serverName <<"}" << std::endl;
-							std::cout << "here the recieved message is:{" << line <<"}" << std::endl;
-							//here the message is good so i have to pass this msg line to the command part
-						}
-					}
-					readyFds--;
-				}
+				if (!(serv._socketsFds[i].revents & (POLLRDNORM | POLLERR)))
+					continue ;
+				serv.clientWithEvent(readyFds, i);
 			}
 		}
 	}
@@ -297,6 +256,97 @@ int Server::saveClientData(void)
 	_socketsFds.push_back(tmp);
 	
     return 0;
+}
+
+void Server::clientCloseConnextion(const int clientIndex)
+{
+	//here client closed connection than you should remove it since its not exist any more
+		std::cerr << "the client with fd " << this->_socketsFds[clientIndex].fd << " has closed the connection"  << std::endl;
+		close(this->_socketsFds[clientIndex].fd);
+		this->getData().erase(_socketsFds[clientIndex].fd);
+		this->_socketsFds.erase(this->_socketsFds.begin() + clientIndex, this->_socketsFds.begin() + clientIndex + 1);
+		// here i need to use the quit command so that the users 
+		//notified about the close of connection for this client
+}
+
+void Server::clientWithEvent(int &readyFds,const int clientIndex)
+{
+	char		msg[1024];
+	int			countNewLine;
+	ssize_t 	recievedLen;
+	std::string line;
+	Client		&triggeredClient = this->getData().find(this->_socketsFds[clientIndex].fd)->second;
+
+	bzero(msg, 1024);
+	recievedLen = recv(this->_socketsFds[clientIndex].fd, msg, 1024, 0);
+	line = msg;
+	std::cout << "recieved line is {"<< line << "}"<< std::endl;
+	if (recievedLen > 512)
+	{
+		this->sendMsg(triggeredClient.ip + ": ERR_INPUTTOOLONG (417):Input line was too long", triggeredClient.fd);
+		return ;
+	}
+	else if (recievedLen <= 0)
+	{
+		this->clientCloseConnextion(clientIndex);
+		return ;
+	}
+	countNewLine = countNewLines(line);
+	if (countNewLine <= 1 && !this->handleCtrlD(line, triggeredClient.bufferString))
+	{
+		readyFds--;
+		return ;
+	}
+	while (countNewLine-- >= 1)
+	{
+		if (countNewLine > 1)
+			handlMultiLineFeed(line, triggeredClient.bufferString);
+		if (triggeredClient.isAuthenticated == false)
+			Authenticator::checkClientAuthentication(*this, triggeredClient, line);
+		else
+		{
+			std::cout << "the client with fd = {"<< triggeredClient.fd <<"} is authenticated" << std::endl;
+			std::cout << "nickName = {"<< triggeredClient.nickName <<"}" << std::endl;
+			std::cout << "userName = {"<< triggeredClient.userName <<"}" << std::endl;
+			std::cout << "realName = {"<< triggeredClient.realName <<"}" << std::endl;
+			std::cout << "hostName = {"<< triggeredClient.hostName <<"}" << std::endl;
+			std::cout << "serverName = {"<< triggeredClient.serverName <<"}" << std::endl;
+			std::cout << "here the recieved message is:{" << line <<"}" << std::endl;
+			//here the message is good so i have to pass this msg line to the command part
+		}
+		line.clear();
+		line = "";
+		line.append(triggeredClient.bufferString);
+	}
+	readyFds--;
+}
+
+std::stringstream	&Server::pushLineToStream(const std::string &line)
+{
+	this->_stringStream.clear();
+	this->_stringStream.str("");
+	this->_stringStream.str(line);
+	return (this->_stringStream);
+}
+
+int	countNewLines(const std::string &line)
+{
+	int	nbr;
+
+	nbr = 0;
+	for (size_t i = 0; i < line.length(); i++)
+	{
+		if (line[i] == '\n')
+			nbr++;
+	}
+	return (nbr);
+}
+
+void Server::handlMultiLineFeed(std::string &line, std::string &bufferString)
+{
+	this->pushLineToStream(line);
+	std::getline(_stringStream, line, '\n');
+	std::getline(_stringStream, bufferString, '\0');
 }
 
 bool Server::handleCtrlD(std::string &line, std::string &bufferString)

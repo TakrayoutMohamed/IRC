@@ -33,6 +33,7 @@ class Server
 		std::map<int, Client>	_data;
 		socklen_t				_clientLen, _serverLen;
 		struct sockaddr_in		_clientAddr, _serverAddr;
+		std::stringstream		_stringStream;
 	public:
 	
 	protected:
@@ -75,11 +76,15 @@ class Server
 		int		checkFdsForNewEvents(void);
 		int		acceptClientSocket(void);
 		int		saveClientData(void);
-		/// @brief 
-		/// @param line the message sended by a client
-		/// @param bufferString the previous message sended by a client and it does not has a new line
-		/// @return true if the line has a new line char on it
-		bool	handleCtrlD(std::string &line, std::string &bufferString);
+		void	clientCloseConnextion(const int clientIndex);
+        void	clientWithEvent(int &readyFds,const int clientIndex);
+        std::stringstream &pushLineToStream(const std::string &line);
+        void handlMultiLineFeed(std::string &line, std::string &bufferString);
+        /// @brief
+        /// @param line the message sended by a client
+        /// @param bufferString the previous message sended by a client and it does not has a new line
+        /// @return true if the line has a new line char on it
+        bool	handleCtrlD(std::string &line, std::string &bufferString);
 		int		deleteClientFd(int fd);
 		int		readClientFd(int fd);
 
@@ -87,4 +92,6 @@ class Server
 
 int	convertStringToInt(const std::string &str);
 bool	hasSpace(const std::string &str);
+
+int	countNewLines(const std::string &line);
 #endif
