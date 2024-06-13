@@ -33,9 +33,7 @@ class Server
 		std::map<int, Client>	_data;
 		socklen_t				_clientLen, _serverLen;
 		struct sockaddr_in		_clientAddr, _serverAddr;
-
-		bool	isValidPassword(const std::string &) const;
-		bool	isValidPort(const int) const;
+	public:
 	
 	protected:
 		/*setter member functions*/
@@ -64,9 +62,11 @@ class Server
 		const std::string &getPassword(void) const;
 		const int &getPort(void) const;
 		const int &getClientFd(void) const;
-		const std::map<int, Client> &getData(void) const;
+		std::map<int, Client> &getData(void);
 	/************************* Methods ************************/
 	private:
+		bool	isValidPassword(const std::string &) const;
+		bool	isValidPort(const int) const;
 		void	openSocket(void);
 		int		bindSocket(void);
 		int		listenSocket(void);
