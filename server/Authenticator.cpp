@@ -4,9 +4,7 @@
 
 Authenticator::Authenticator(/* args */) : _nick(""), _user(""), _realName("")
 {
-	_isPassSet = false;
-	_isNickSet = false;
-	_isUserSet = false;
+
 }
 
 Authenticator::~Authenticator()
@@ -34,37 +32,35 @@ void Authenticator::toUpper(std::string &str)
 	}
 }
 
-int Authenticator::checkPassword(const Server &server)
+int Authenticator::checkPassword(const Server &server, int fd)
 {
 	std::string pass;
 	std::string password;
 	std::string thirdParam;
 
-	// if (this->_isPassSet)
-	// {
-	// 	server.sendMsg("ERR_ALREADYREGISTERED (462)", server.getClientFd());
-	// 	return (true);
-	// }
 	std::getline(this->_stringStream, pass, ' ');
 	std::getline(this->_stringStream, password, ' ');
 	std::getline(this->_stringStream, thirdParam, ' ');
+	std::cout << "pass = ["<< pass <<"]" << "password = ["<< password <<"]" << "thirdParam = ["<< thirdParam <<"]" << std::endl;
 	if (thirdParam.length() > 0)
 	{
-		server.sendMsg("TOO MANY PARAMS ()", server.getClientFd());
+		server.sendMsg("TOO MANY PARAMS ()", fd);
+		return (false);
 	}
 	if (pass.length() == 0 || password.length() == 0)
 	{
-		server.sendMsg("ERR_NEEDMOREPARAMS (461)", server.getClientFd());
+		server.sendMsg("ERR_NEEDMOREPARAMS (461)", fd);
+		return (false);
 	}
 	this->toUpper(pass);
 	if (pass.compare("PASS") != 0)
 	{
-		server.sendMsg("ERR_NOTREGISTERED (451)", server.getClientFd());
+		server.sendMsg("ERR_NOTREGISTERED (451)", fd);
 		return (false);
 	}
 	if (server.getPassword().compare(password) == 0)
 		return (true);
-	server.sendMsg("ERR_PASSWDMISMATCH (464)", server.getClientFd());
+	server.sendMsg("ERR_PASSWDMISMATCH (464)", fd);
 	return (false);
 }
 
@@ -89,52 +85,54 @@ bool	isNickNameInUse(const std::map<int, Client> &data, const std::string &nick)
 	std::map<int, Client>::const_iterator  it = data.begin();
 	while (it != data.end())
 	{
-		if (it->second.hostName.compare(nick) == 0)
+		if (it->second.nickName.compare(nick) == 0)
 			return (true);
 		it++;
 	}
 	return (false);
 }
 
-int Authenticator::checkNick(const Server &server)
+int Authenticator::checkNick(Server &server, int fd)
 {
 	std::string firstParam;
 	std::string secondParam;
+	std::string thirdParam;
 
-	if (this->_isPassSet == false)
-	{
-		server.sendMsg("YOU NEED TO SET THE SERVER'S PASSWORD FIRST", server.getClientFd());
-		return (false);
-	}	
 	std::getline(this->_stringStream, firstParam, ' ');
 	std::getline(this->_stringStream, secondParam, ' ');
+	std::getline(this->_stringStream, thirdParam, ' ');
+	std::cout << "nick = ["<< firstParam <<"]" << "nickname = ["<< secondParam <<"]" << std::endl;
+	if (thirdParam.length() > 0)
+	{
+		server.sendMsg("TOO MANY PARAMS ()", fd);
+		return (false);
+	}
 	if (hasUnacceptedChars(secondParam))
 	{
-		server.sendMsg("ERR_ERRONEUSNICKNAME (432)", server.getClientFd());
+		server.sendMsg("ERR_ERRONEUSNICKNAME (432)", fd);
 		return (false);
 	}
 	if (secondParam.length() == 0 || secondParam.length() == 0)
 	{
-		server.sendMsg("ERR_NONICKNAMEISGIVEN (431)", server.getClientFd());
+		server.sendMsg("ERR_NONICKNAMEISGIVEN (431)", fd);
 		return (false);
 	}
 	this->toUpper(firstParam);
 	if (firstParam.compare("NICK") != 0)
 	{
-		server.sendMsg("ERR_NOTREGISTERED (451)", server.getClientFd());
+		server.sendMsg("ERR_NOTREGISTERED (451)", fd);
 		return (false);
 	}
-	// if (std::find(server.getData().begin(), secondParam) != server.getData().end())
 	if (isNickNameInUse(server.getData(), secondParam))
 	{
-		server.sendMsg("ERR_NICKNAMEINUSE (433)", server.getClientFd());
+		server.sendMsg("ERR_NICKNAMEINUSE (433)", fd);
 		return (false);
 	}
 	this->setNick(secondParam);
 	return (true);
 }
 
-int Authenticator::checkUser(const Server &server)
+int Authenticator::checkUser(const Server &server, int fd)
 {
 	std::string firstParam;
 	std::string secondParam;
@@ -143,11 +141,6 @@ int Authenticator::checkUser(const Server &server)
 	std::string fifthParam;
 	std::string sixthParam;
 
-	if (this->_isPassSet == false)
-	{
-		server.sendMsg("YOU NEED TO SET THE SERVER'S PASSWORD FIRST", server.getClientFd());
-		return (false);
-	}
 	std::getline(this->_stringStream, firstParam, ':');
 	std::getline(this->_stringStream, fifthParam, ':');
 	this->pushLineToStream(firstParam);
@@ -171,14 +164,16 @@ int Authenticator::checkUser(const Server &server)
 		std::getline(this->_stringStream, sixthParam, ' ');
 
 	}
+	std::cout << "user = ["<< firstParam <<"]" << "userName = ["<< secondParam <<"]" << "servername = ["<< thirdParam <<"]" << "hostname = ["<< fourthParam << "]" << "realName = ["<< fifthParam << "]" ;
+	std::cout << "sixthParam = ["<< sixthParam <<"]" << std::endl;
 	if (sixthParam.length() > 0)
 	{
-		server.sendMsg("TOO MANY PARAMS IN USER()", server.getClientFd());
+		server.sendMsg("TOO MANY PARAMS IN USER()", fd);
 		return (false);
 	}
 	if (!firstParam.length() || !secondParam.length() || !thirdParam.length() || !fourthParam.length() || !fifthParam.length())
 	{
-		server.sendMsg("ERR_NEEDMOREPARAMS (461)", server.getClientFd());
+		server.sendMsg("ERR_NEEDMOREPARAMS (461)", fd);
 		return (false);
 	}
 	this->setUser(("~" + secondParam).c_str());
@@ -186,38 +181,60 @@ int Authenticator::checkUser(const Server &server)
     return (true);
 }
 
-int Authenticator::checkClientAuthentication(Server &server, Client &client)
+void printClientData(const Client &client)
+{
+	std::cout << "*************************************" << std::endl;
+	std::cout << "isAuthenticated = {"<< client.isAuthenticated <<"}" << std::endl;
+	std::cout << "nickName = {"<< client.nickName <<"}" << std::endl;
+	std::cout << "userName = {"<< client.userName <<"}" << std::endl;
+	std::cout << "realName = {"<< client.realName <<"}" << std::endl;
+	std::cout << "hostName = {"<< client.hostName <<"}" << std::endl;
+	std::cout << "serverName = {"<< client.serverName <<"}" << std::endl;
+	std::cout << "ip = {"<< client.ip <<"}" << std::endl;
+	std::cout << "fd = {"<< client.fd <<"}" << std::endl;
+	std::cout << "*************************************" << std::endl;
+}
+
+int Authenticator::checkClientAuthentication(Server &server, Client &client, std::string &line)
 {
 	Authenticator auth;
-	std::string line;
-	char msg[1024];
 
-	do
+	line.erase(line.end() - 1);
+	auth.pushLineToStream(line);
+	for (int i = 0; i < 4 && line[i] != '\0'; i++)
+		line[i] = toupper(static_cast<int>(line[i]));
+	if (line.compare(0, 4, "PASS ", 0, 4) != 0 && !client._isPassSet)
 	{
-		// std::cout << "testing: here is the checkclientauthentication " << std::endl;
-		// server.sendMsg("testing: here is the checkclientauthentication ", server.getClientFd());
-		// std::getline(std::cin, line);
-		recv(client.fd, msg, 1024, 0);
-		line = msg;
-		if (line.length() == 0)
-			continue ;
-		auth.pushLineToStream(line);
-		for (int i = 0; i < 4; i++)
-			line[i] = toupper(static_cast<int>(line[i]));
-		if (line.compare(0, 4, "PASS ", 0, 4) == 0)
-			auth._isPassSet = auth.checkPassword(server);
-		else if (line.compare(0, 4, "USER ", 0, 4) == 0)
-			auth._isUserSet = auth.checkUser(server);
-		else if (line.compare(0, 4, "NICK ", 0, 4) == 0)
-			auth._isNickSet = auth.checkNick(server);
-		else if (line.length() > 0)
-			server.sendMsg("ERR_NOTREGISTRED (451)", server.getClientFd());
-		line.clear();
-		line = "";
-	} while (!auth._isNickSet || !auth._isUserSet || !auth._isPassSet);
-	client.nickName = auth._nick;
-	client.realName = auth._realName;
-	client.userName = auth._user;
+		server.sendMsg("YOU NEED TO SET THE SERVER'S PASSWORD FIRST", client.fd);
+		return (false);
+	}
+	if (line.compare(0, 4, "PASS ", 0, 4) == 0)
+		client._isPassSet = auth.checkPassword(server, client.fd);
+	else if (line.compare(0, 4, "USER ", 0, 4) == 0)
+	{
+		if (!client._isUserSet && auth.checkUser(server, client.fd))
+		{
+			client._isUserSet = true;
+			client.userName = auth._user;
+			client.realName = auth._realName;
+		}
+	}
+	else if (line.compare(0, 4, "NICK ", 0, 4) == 0)
+	{
+		if (!client._isNickSet && auth.checkNick(server, client.fd))
+		{
+			client._isNickSet = true;
+			client.nickName = auth._nick;
+		}
+	}
+	else if (line.length() > 0)
+	{
+		server.sendMsg("ERR_NOTREGISTRED (451)", client.fd);
+		printClientData(client);
+	}
+	std::cout << " is Nick set" << client._isNickSet << " is User set" << client._isUserSet << " is Pass set" << client._isPassSet <<  std::endl;
+	if (client._isNickSet && client._isPassSet && client._isUserSet)
+		client.isAuthenticated = true;
 	return (true);
 }
 
