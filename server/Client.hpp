@@ -9,6 +9,10 @@ class Client
     private:
         /* data */
     public:
+        bool        isAuthenticated;
+        bool		_isPassSet;
+		bool		_isNickSet;
+		bool		_isUserSet;
         std::string nickName;
         std::string userName;
         std::string realName;
@@ -18,6 +22,7 @@ class Client
         int fd;
 
         Client(/* args */);
+        Client(const Client &obj);
         const Client &operator=(const Client &obj);
         ~Client();
 };

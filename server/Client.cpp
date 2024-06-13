@@ -3,6 +3,10 @@
 
 Client::Client(/* args */)
 {
+	isAuthenticated = false;
+	_isPassSet = false;
+	_isNickSet = false;
+	_isUserSet = false;
 	nickName = "";
 	userName = "";
 	realName = "";
@@ -12,17 +16,27 @@ Client::Client(/* args */)
 	ip = "";
 }
 
+Client::Client(const Client &obj)
+{
+	if (this != &obj)
+		*this = obj;
+}
+
 const Client &Client::operator=(const Client &obj)
 {
 	if (this != &obj)
 	{
-		this->fd			= obj.fd;
-		this->hostName  	= obj.hostName;
-		this->ip			= obj.ip;
-		this->nickName		= obj.nickName;
-		this->realName		= obj.realName;
-		this->serverName	= obj.serverName;
-		this->userName		= obj.serverName;
+		this->_isPassSet		= obj._isPassSet;
+		this->_isNickSet		= obj._isNickSet;
+		this->_isUserSet		= obj._isUserSet;
+		this->isAuthenticated	= obj.isAuthenticated;
+		this->fd				= obj.fd;
+		this->hostName  		= obj.hostName;
+		this->ip				= obj.ip;
+		this->nickName			= obj.nickName;
+		this->realName			= obj.realName;
+		this->serverName		= obj.serverName;
+		this->userName			= obj.serverName;
 	}
 	return (*this);
 }
