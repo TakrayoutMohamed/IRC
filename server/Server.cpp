@@ -261,12 +261,12 @@ int Server::saveClientData(void)
 void Server::clientCloseConnextion(const int clientIndex)
 {
 	//here client closed connection than you should remove it since its not exist any more
-		std::cerr << "the client with fd " << this->_socketsFds[clientIndex].fd << " has closed the connection"  << std::endl;
-		close(this->_socketsFds[clientIndex].fd);
-		this->getData().erase(_socketsFds[clientIndex].fd);
-		this->_socketsFds.erase(this->_socketsFds.begin() + clientIndex, this->_socketsFds.begin() + clientIndex + 1);
-		// here i need to use the quit command so that the users 
-		//notified about the close of connection for this client
+	// here i need to use the quit command so that the users 
+	//notified about the close of connection for this client
+	std::cerr << "the client with fd " << this->_socketsFds[clientIndex].fd << " has closed the connection"  << std::endl;
+	close(this->_socketsFds[clientIndex].fd);
+	this->getData().erase(_socketsFds[clientIndex].fd);
+	this->_socketsFds.erase(this->_socketsFds.begin() + clientIndex, this->_socketsFds.begin() + clientIndex + 1);
 }
 
 void Server::clientWithEvent(int &readyFds,const int clientIndex)
@@ -291,34 +291,26 @@ void Server::clientWithEvent(int &readyFds,const int clientIndex)
 		this->clientCloseConnextion(clientIndex);
 		return ;
 	}
-	countNewLine = countNewLines(line);
-	if (countNewLine <= 1 && !this->handleCtrlD(line, triggeredClient.bufferString))
-	{
-		readyFds--;
+	if (!this->handleCtrlD(line, triggeredClient.bufferString))
 		return ;
-	}
+	countNewLine = countNewLines(line);
+	std::cout << "count New Lines = " << countNewLine << std::endl;
+	this->pushLineToStream(line);
 	while (countNewLine-- >= 1)
 	{
-		if (countNewLine > 1)
-			handlMultiLineFeed(line, triggeredClient.bufferString);
+		line.clear();
+		std::getline(_stringStream, line, '\n');
+		if (line.find('\r') != line.npos)
+			line.erase(line.find('\r'));
+		std::cout << "line after spliting it is :{" << line << "}" << std::endl;
 		if (triggeredClient.isAuthenticated == false)
 			Authenticator::checkClientAuthentication(*this, triggeredClient, line);
 		else
 		{
-			std::cout << "the client with fd = {"<< triggeredClient.fd <<"} is authenticated" << std::endl;
-			std::cout << "nickName = {"<< triggeredClient.nickName <<"}" << std::endl;
-			std::cout << "userName = {"<< triggeredClient.userName <<"}" << std::endl;
-			std::cout << "realName = {"<< triggeredClient.realName <<"}" << std::endl;
-			std::cout << "hostName = {"<< triggeredClient.hostName <<"}" << std::endl;
-			std::cout << "serverName = {"<< triggeredClient.serverName <<"}" << std::endl;
-			std::cout << "here the recieved message is:{" << line <<"}" << std::endl;
-			//here the message is good so i have to pass this msg line to the command part
+			this->sendMsg(triggeredClient.ip + "you have been authenticated successfully", triggeredClient.fd);
+			//here YOU ARE GOING TO PASS THE LINE TO THE COMMANDS PART 
 		}
-		line.clear();
-		line = "";
-		line.append(triggeredClient.bufferString);
 	}
-	readyFds--;
 }
 
 std::stringstream	&Server::pushLineToStream(const std::string &line)
@@ -340,13 +332,6 @@ int	countNewLines(const std::string &line)
 			nbr++;
 	}
 	return (nbr);
-}
-
-void Server::handlMultiLineFeed(std::string &line, std::string &bufferString)
-{
-	this->pushLineToStream(line);
-	std::getline(_stringStream, line, '\n');
-	std::getline(_stringStream, bufferString, '\0');
 }
 
 bool Server::handleCtrlD(std::string &line, std::string &bufferString)
