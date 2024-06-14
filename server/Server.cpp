@@ -68,7 +68,7 @@ void Server::runServer(const std::string &password, const std::string &port)
 			}
  			for (size_t i = 1; i < serv._socketsFds.size(); i++)
 			{
-				if (!(serv._socketsFds[i].revents & (POLLRDNORM | POLLERR)))
+				if (!(serv._socketsFds[i].revents & (POLLRDNORM)))
 					continue ;
 				serv.clientWithEvent(readyFds, i);
 			}
