@@ -273,26 +273,25 @@ void Server::clientWithEvent(int &readyFds,const int clientIndex)
 {
 	char		msg[1024];
 	int			countNewLine;
-	ssize_t 	recievedLen;
 	std::string line;
 	Client		&triggeredClient = this->getData().find(this->_socketsFds[clientIndex].fd)->second;
 
 	bzero(msg, 1024);
-	recievedLen = recv(this->_socketsFds[clientIndex].fd, msg, 1024, 0);
+	recv(this->_socketsFds[clientIndex].fd, msg, 1024, 0);
 	line = msg;
 	std::cout << "recieved line is {"<< line << "}"<< std::endl;
-	if (recievedLen > 512)
+	if (!this->handleCtrlD(line, triggeredClient.bufferString))
+		return ;
+	if (line.length() > 512)
 	{
 		this->sendMsg(triggeredClient.ip + ": ERR_INPUTTOOLONG (417):Input line was too long", triggeredClient.fd);
 		return ;
 	}
-	else if (recievedLen <= 0)
+	else if (line.length() <= 0)
 	{
 		this->clientCloseConnextion(clientIndex);
 		return ;
 	}
-	if (!this->handleCtrlD(line, triggeredClient.bufferString))
-		return ;
 	countNewLine = countNewLines(line);
 	std::cout << "count New Lines = " << countNewLine << std::endl;
 	this->pushLineToStream(line);
