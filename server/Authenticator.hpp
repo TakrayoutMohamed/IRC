@@ -34,4 +34,7 @@ class Authenticator
 
 		/*getters*/
 };
+bool	isNickNameInUse(const std::map<int, Client> &data, const std::string &nick);
+bool	hasUnacceptedChars(const std::string &nick);
+
 #endif
