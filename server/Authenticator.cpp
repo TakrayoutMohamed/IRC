@@ -199,7 +199,8 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 {
 	Authenticator auth;
 
-	line.erase(line.end() - 1);
+	if (line.find('\n') != line.npos)
+		line.erase(line.find('\n'));
 	auth.pushLineToStream(line);
 	for (int i = 0; i < 4 && line[i] != '\0'; i++)
 		line[i] = toupper(static_cast<int>(line[i]));
