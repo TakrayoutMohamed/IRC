@@ -85,7 +85,11 @@ void Server::sendMsg(const std::string &msg, int fd) const
 {
 	std::string message;
 	message = msg + "\r\n";
-	send(fd, message.c_str(), message.length(), 0);
+	if (send(fd, message.c_str(), message.length(), 0) == -1)
+	{
+		std::cout << "Error :" << std::endl;
+		std::cerr << "thier is an error occured while trying to send a message" << std::endl;
+	}
 }
 
 void Server::addData(int fd, const Client &client)
