@@ -78,7 +78,8 @@ class Server
 		int		acceptClientSocket(void);
 		int		saveClientData(void);
 		void	clientCloseConnextion(const int clientIndex);
-        void	clientWithEvent(int &readyFds,const int clientIndex);
+        bool	recieveMsg(const int fd, std::string &line);
+        void clientWithEvent(int &readyFds, const int clientIndex);
         std::stringstream &pushLineToStream(const std::string &line);
         void handlMultiLineFeed(std::string &line, std::string &bufferString);
         /// @brief

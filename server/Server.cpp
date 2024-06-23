@@ -269,18 +269,29 @@ void Server::clientCloseConnextion(const int clientIndex)
 	this->_socketsFds.erase(this->_socketsFds.begin() + clientIndex, this->_socketsFds.begin() + clientIndex + 1);
 }
 
+bool Server::recieveMsg(const int fd, std::string &line)
+{
+	char		msg[1024];
+
+	bzero(msg, 1024);
+	if (recv(fd, msg, 1024, 0) == -1)
+	{
+		std::cerr << "Error : thier is an error while recieving a message" << std::endl;
+		return (false);
+	}
+	line = msg;
+	return (true);
+}
+
 void Server::clientWithEvent(int &readyFds,const int clientIndex)
 {
 	(void) readyFds;
-	char		msg[1024];
 	int			countNewLine;
 	std::string line;
 	Client		&triggeredClient = this->getData().find(this->_socketsFds[clientIndex].fd)->second;
 
-	bzero(msg, 1024);
-	recv(this->_socketsFds[clientIndex].fd, msg, 1024, 0);
-	line = msg;
-	std::cout << "recieved line is {"<< line << "}"<< std::endl;
+	if (!recieveMsg(triggeredClient.fd, line))
+		return ;
 	if (!this->handleCtrlD(line, triggeredClient.bufferString))
 		return ;
 	if (line.length() > 512)
@@ -294,7 +305,6 @@ void Server::clientWithEvent(int &readyFds,const int clientIndex)
 		return ;
 	}
 	countNewLine = countNewLines(line);
-	std::cout << "count New Lines = " << countNewLine << std::endl;
 	this->pushLineToStream(line);
 	while (countNewLine-- >= 1)
 	{
@@ -302,7 +312,6 @@ void Server::clientWithEvent(int &readyFds,const int clientIndex)
 		std::getline(_stringStream, line, '\n');
 		if (line.find('\r') != line.npos)
 			line.erase(line.find('\r'));
-		std::cout << "line after spliting it is :{" << line << "}" << std::endl;
 		if (triggeredClient.isAuthenticated == false)
 			Authenticator::checkClientAuthentication(*this, triggeredClient, line);
 		else
