@@ -1,19 +1,20 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
-# define TOOMANYPARAMS 2
-# define NEEDMOREPARAMS 3
-# define PASSWORDMISMATCH 4
-
+# ifndef OPEN_MAX
+#  define OPEN_MAX PF_MAX
+# endif
 # include <iostream>
 # include <sstream>
 # include <limits.h>      /* for OPEN_MAX */
 # include <iostream>
 # include <unistd.h> /*close()*/
+# include <string.h>
 # include <sys/socket.h> /*socket() , bind(), listen(), accept()*/
 # include <arpa/inet.h> /*htons*/
 # include <netinet/in.h> /*sockaddr_in*/
 # include <netdb.h> /*gethostbyname()*/
 # include <fcntl.h> /*fcntl()*/
+# include <signal.h>
 # include <poll.h> /*poll()*/
 # include <vector>
 # include <map>

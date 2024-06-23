@@ -271,6 +271,7 @@ void Server::clientCloseConnextion(const int clientIndex)
 
 void Server::clientWithEvent(int &readyFds,const int clientIndex)
 {
+	(void) readyFds;
 	char		msg[1024];
 	int			countNewLine;
 	std::string line;
