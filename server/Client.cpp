@@ -12,7 +12,7 @@ Client::Client(/* args */)
 	userName = "";
 	realName = "";
 	hostName = "";
-	serverName = "";
+	serverName = "ircserver";
 	fd = -2;
 	ip = "";
 }
