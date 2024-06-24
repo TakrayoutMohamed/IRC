@@ -204,14 +204,14 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 	auth.pushLineToStream(line);
 	for (int i = 0; i < 4 && line[i] != '\0'; i++)
 		line[i] = toupper(static_cast<int>(line[i]));
-	if (line.compare(0, 4, "PASS ", 0, 4) != 0 && !client._isPassSet)
+	if (line.compare(0, 5, "PASS ", 0, 5) != 0 && !client._isPassSet)
 	{
 		server.sendMsg("YOU NEED TO SET THE SERVER'S PASSWORD FIRST", client.fd);
 		return (false);
 	}
-	if (line.compare(0, 4, "PASS ", 0, 4) == 0)
+	if (line.compare(0, 5, "PASS ", 0, 5) == 0)
 		client._isPassSet = auth.checkPassword(server, client.fd);
-	else if (line.compare(0, 4, "USER ", 0, 4) == 0)
+	else if (line.compare(0, 5, "USER ", 0, 5) == 0)
 	{
 		if (!client._isUserSet && auth.checkUser(server, client.fd))
 		{
@@ -220,7 +220,7 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 			client.realName = auth._realName;
 		}
 	}
-	else if (line.compare(0, 4, "NICK ", 0, 4) == 0)
+	else if (line.compare(0, 5, "NICK ", 0, 5) == 0)
 	{
 		if (!client._isNickSet && auth.checkNick(server, client.fd))
 		{
@@ -233,7 +233,7 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 		server.sendMsg("ERR_NOTREGISTRED (451)", client.fd);
 		printClientData(client);
 	}
-	std::cout << " is Nick set" << client._isNickSet << " is User set" << client._isUserSet << " is Pass set" << client._isPassSet <<  std::endl;
+	// std::cout << " is Nick set" << client._isNickSet << " is User set" << client._isUserSet << " is Pass set" << client._isPassSet <<  std::endl;
 	if (client._isNickSet && client._isPassSet && client._isUserSet)
 		client.isAuthenticated = true;
 	return (true);
