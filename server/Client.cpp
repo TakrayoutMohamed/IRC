@@ -38,7 +38,7 @@ const Client &Client::operator=(const Client &obj)
 		this->nickName			= obj.nickName;
 		this->realName			= obj.realName;
 		this->serverName		= obj.serverName;
-		this->userName			= obj.serverName;
+		this->userName			= obj.userName;
 	}
 	return (*this);
 }
