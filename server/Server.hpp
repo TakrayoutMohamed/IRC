@@ -80,6 +80,7 @@ class Server
 		void	clientCloseConnextion(const int clientIndex);
         bool	recieveMsg(const int fd, std::string &line);
         void clientWithEvent(int &readyFds, const int clientIndex);
+        bool isAuthenticationCommand(std::string line);
         std::stringstream &pushLineToStream(const std::string &line);
         void handlMultiLineFeed(std::string &line, std::string &bufferString);
         /// @brief

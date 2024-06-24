@@ -320,10 +320,26 @@ void Server::clientWithEvent(int &readyFds,const int clientIndex)
 			Authenticator::checkClientAuthentication(*this, triggeredClient, line);
 		else
 		{
-			this->sendMsg(triggeredClient.ip + "you have been authenticated successfully", triggeredClient.fd);
+			if (isAuthenticationCommand(line))
+				this->sendMsg(":"+ triggeredClient.serverName +" 462 "+ triggeredClient.nickName +" :You may not reregister", triggeredClient.fd);
+			else
+				this->sendMsg(triggeredClient.ip + "you have been authenticated successfully", triggeredClient.fd);
 			//here YOU ARE GOING TO PASS THE LINE TO THE COMMANDS PART 
 		}
 	}
+}
+
+bool Server::isAuthenticationCommand(std::string line)
+{
+	for (int i = 0; i < 4 && line[i] != '\0'; i++)
+		line[i] = toupper(static_cast<int>(line[i]));
+	if (line.compare(0, 5, "PASS ", 0, 5) == 0)
+		return (true);
+	if (line.compare(0, 5, "NICK ", 0, 5) == 0)
+		return (true);
+	if (line.compare(0, 5, "USER ", 0, 5) == 0)
+		return (true);
+	return (false);	
 }
 
 std::stringstream	&Server::pushLineToStream(const std::string &line)
