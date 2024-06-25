@@ -300,7 +300,7 @@ void Server::clientWithEvent(int &readyFds,const int clientIndex)
 		return ;
 	if (line.length() > 512)
 	{
-		this->sendMsg(triggeredClient.ip + ": ERR_INPUTTOOLONG (417):Input line was too long", triggeredClient.fd);
+		this->sendMsg(triggeredClient.ip + " :Input line was too long", triggeredClient.fd);
 		return ;
 	}
 	else if (line.length() <= 0)

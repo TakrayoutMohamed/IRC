@@ -47,20 +47,20 @@ int Authenticator::checkPassword(const Server &server, int fd)
 		server.sendMsg("TOO MANY PARAMS ()", fd);
 		return (false);
 	}
-	if (pass.length() == 0 || password.length() == 0)
+	this->toUpper(pass);
+	if (password.length() == 0)
 	{
-		server.sendMsg("ERR_NEEDMOREPARAMS (461)", fd);
+		server.sendMsg(pass + " : not enough parameters", fd);
 		return (false);
 	}
-	this->toUpper(pass);
 	if (pass.compare("PASS") != 0)
 	{
-		server.sendMsg("ERR_NOTREGISTERED (451)", fd);
+		server.sendMsg(": you have not registered", fd);
 		return (false);
 	}
 	if (server.getPassword().compare(password) == 0)
 		return (true);
-	server.sendMsg("ERR_PASSWDMISMATCH (464)", fd);
+	server.sendMsg(": password incorect", fd);
 	return (false);
 }
 
@@ -75,6 +75,8 @@ bool hasUnacceptedChars(const std::string &nick)
 		if (nick[i] == '#')
 			return (true);
 		if (nick[i] == '@')
+			return (true);
+		if (nick[i] == '&')
 			return (true);
 	}
 	return (false);
@@ -109,23 +111,23 @@ int Authenticator::checkNick(Server &server, int fd)
 	}
 	if (hasUnacceptedChars(secondParam))
 	{
-		server.sendMsg("ERR_ERRONEUSNICKNAME (432)", fd);
+		server.sendMsg(secondParam + " : Erroneus nickname", fd);
 		return (false);
 	}
 	if (secondParam.length() == 0 || secondParam.length() == 0)
 	{
-		server.sendMsg("ERR_NONICKNAMEISGIVEN (431)", fd);
+		server.sendMsg(": no nickname is given", fd);
 		return (false);
 	}
 	this->toUpper(firstParam);
 	if (firstParam.compare("NICK") != 0)
 	{
-		server.sendMsg("ERR_NOTREGISTERED (451)", fd);
+		server.sendMsg(": you have not registered", fd);
 		return (false);
 	}
 	if (isNickNameInUse(server.getData(), secondParam))
 	{
-		server.sendMsg("ERR_NICKNAMEINUSE (433)", fd);
+		server.sendMsg(secondParam + " : nickname already in use", fd);
 		return (false);
 	}
 	this->setNick(secondParam);
@@ -173,7 +175,7 @@ int Authenticator::checkUser(const Server &server, int fd)
 	}
 	if (!firstParam.length() || !secondParam.length() || !thirdParam.length() || !fourthParam.length() || !fifthParam.length())
 	{
-		server.sendMsg("ERR_NEEDMOREPARAMS (461)", fd);
+		server.sendMsg(firstParam + " : not enough parameters", fd);
 		return (false);
 	}
 	this->setUser(("~" + secondParam).c_str());
@@ -230,7 +232,7 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 	}
 	else if (line.length() > 0)
 	{
-		server.sendMsg("ERR_NOTREGISTRED (451)", client.fd);
+		server.sendMsg(": you have not registered", client.fd);
 		printClientData(client);
 	}
 	// std::cout << " is Nick set" << client._isNickSet << " is User set" << client._isUserSet << " is Pass set" << client._isPassSet <<  std::endl;
