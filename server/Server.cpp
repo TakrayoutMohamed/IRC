@@ -339,6 +339,12 @@ bool Server::isAuthenticationCommand(std::string line)
 		return (true);
 	if (line.compare(0, 5, "USER ", 0, 5) == 0)
 		return (true);
+	if (line.compare("PASS") == 0)
+		return (true);
+	if (line.compare("NICK") == 0)
+		return (true);
+	if (line.compare("USER") == 0)
+		return (true);
 	return (false);	
 }
 
