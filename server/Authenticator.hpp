@@ -20,8 +20,11 @@ class Authenticator
 		~Authenticator();
         std::stringstream &pushLineToStream(const std::string &line);
 		void		toUpper(std::string &str);
+        void 		parsePass(std::string &cmd, std::string &password, std::string &third);
         int			checkPassword(const Server &obj, int fd);
+        void		parseNick(std::string &cmd, std::string &nickName, std::string &third);
 		int			checkNick(Server &obj, int fd);
+        void 		parseUser(std::string &cmd, std::string &user, std::string &hostName, std::string &servName, std::string &realName, std::string &sixthParam);
 		int			checkUser(const Server &obj, int fd);
         /// @brief 		this member meant to check if the client entered his information as it should (password , user , nick ,realname)
         /// @param obj  an obj of the server
@@ -35,6 +38,7 @@ class Authenticator
 		/*getters*/
 };
 bool	isNickNameInUse(const std::map<int, Client> &data, const std::string &nick);
+void	skipSpaces(std::stringstream &sstream, std::string &str);
 bool	hasUnacceptedChars(const std::string &nick);
 
 #endif

@@ -32,15 +32,20 @@ void Authenticator::toUpper(std::string &str)
 	}
 }
 
+void	Authenticator::parsePass(std::string &cmd, std::string &password, std::string &third)
+{
+	std::getline(this->_stringStream, cmd, ' ');
+	skipSpaces(this->_stringStream, password);
+	skipSpaces(this->_stringStream, third);
+}
+
 int Authenticator::checkPassword(const Server &server, int fd)
 {
 	std::string pass;
 	std::string password;
 	std::string thirdParam;
 
-	std::getline(this->_stringStream, pass, ' ');
-	std::getline(this->_stringStream, password, ' ');
-	std::getline(this->_stringStream, thirdParam, ' ');
+	parsePass(pass, password, thirdParam);
 	std::cout << "pass = ["<< pass <<"]" << "password = ["<< password <<"]" << "thirdParam = ["<< thirdParam <<"]" << std::endl;
 	if (thirdParam.length() > 0)
 	{
@@ -51,11 +56,6 @@ int Authenticator::checkPassword(const Server &server, int fd)
 	if (password.length() == 0)
 	{
 		server.sendMsg(pass + " : not enough parameters", fd);
-		return (false);
-	}
-	if (pass.compare("PASS") != 0)
-	{
-		server.sendMsg(": you have not registered", fd);
 		return (false);
 	}
 	if (server.getPassword().compare(password) == 0)
@@ -94,15 +94,32 @@ bool	isNickNameInUse(const std::map<int, Client> &data, const std::string &nick)
 	return (false);
 }
 
+/// @brief skip the spaces and asign the text from a ' ' space to another into str parameter
+/// @param sstream  a stream of characters 
+/// @param str a string to asign the first occurs of non space characters
+void skipSpaces(std::stringstream &sstream, std::string &str)
+{
+	std::getline(sstream, str, ' ');
+	while(str.compare("") == 0 && !sstream.fail())
+	{
+		std::getline(sstream, str, ' ');
+	}
+}
+
+void	Authenticator::parseNick(std::string &cmd, std::string &nickName, std::string &third)
+{
+	std::getline(this->_stringStream, cmd, ' ');
+	skipSpaces(this->_stringStream, nickName);
+	skipSpaces(this->_stringStream, third);
+}
+
 int Authenticator::checkNick(Server &server, int fd)
 {
 	std::string firstParam;
 	std::string secondParam;
 	std::string thirdParam;
 
-	std::getline(this->_stringStream, firstParam, ' ');
-	std::getline(this->_stringStream, secondParam, ' ');
-	std::getline(this->_stringStream, thirdParam, ' ');
+	parseNick(firstParam, secondParam, thirdParam);
 	std::cout << "nick = ["<< firstParam <<"]" << "nickname = ["<< secondParam <<"]" << std::endl;
 	if (thirdParam.length() > 0)
 	{
@@ -114,15 +131,9 @@ int Authenticator::checkNick(Server &server, int fd)
 		server.sendMsg(secondParam + " : Erroneus nickname", fd);
 		return (false);
 	}
-	if (secondParam.length() == 0 || secondParam.length() == 0)
+	if (secondParam.length() == 0)
 	{
 		server.sendMsg(": no nickname is given", fd);
-		return (false);
-	}
-	this->toUpper(firstParam);
-	if (firstParam.compare("NICK") != 0)
-	{
-		server.sendMsg(": you have not registered", fd);
 		return (false);
 	}
 	if (isNickNameInUse(server.getData(), secondParam))
@@ -134,6 +145,25 @@ int Authenticator::checkNick(Server &server, int fd)
 	return (true);
 }
 
+void	Authenticator::parseUser(std::string &cmd, std::string &user, std::string &hostName, std::string &servName, std::string &realName, std::string &sixthParam)
+{
+	std::getline(this->_stringStream, cmd, ':');
+	std::getline(this->_stringStream, realName, ':');
+	std::getline(this->_stringStream, sixthParam, ':');
+	this->pushLineToStream(cmd);
+	cmd.clear();
+	cmd = "";
+	std::getline(this->_stringStream, cmd, ' ');
+	skipSpaces(this->_stringStream, user);
+	skipSpaces(this->_stringStream, hostName);
+	skipSpaces(this->_stringStream, servName);
+	if (realName.length() == 0)
+	{
+		skipSpaces(this->_stringStream, realName);
+		skipSpaces(this->_stringStream, sixthParam);
+	}
+}
+
 int Authenticator::checkUser(const Server &server, int fd)
 {
 	std::string firstParam;
@@ -143,29 +173,7 @@ int Authenticator::checkUser(const Server &server, int fd)
 	std::string fifthParam;
 	std::string sixthParam;
 
-	std::getline(this->_stringStream, firstParam, ':');
-	std::getline(this->_stringStream, fifthParam, ':');
-	this->pushLineToStream(firstParam);
-	firstParam.clear();
-	firstParam = "";
-	if (fifthParam.length() == 0)
-	{
-		std::getline(this->_stringStream, firstParam, ' ');
-		std::getline(this->_stringStream, secondParam, ' ');
-		std::getline(this->_stringStream, thirdParam, ' ');
-		std::getline(this->_stringStream, fourthParam, ' ');
-		std::getline(this->_stringStream, fifthParam, ' ');
-		std::getline(this->_stringStream, sixthParam, ' ');
-	}
-	else
-	{
-		std::getline(this->_stringStream, firstParam, ' ');
-		std::getline(this->_stringStream, secondParam, ' ');
-		std::getline(this->_stringStream, thirdParam, ' ');
-		std::getline(this->_stringStream, fourthParam, ' ');
-		std::getline(this->_stringStream, sixthParam, ' ');
-
-	}
+	parseUser(firstParam, secondParam, thirdParam, fourthParam, fifthParam, sixthParam);
 	std::cout << "user = ["<< firstParam <<"]" << "userName = ["<< secondParam <<"]" << "servername = ["<< thirdParam <<"]" << "hostname = ["<< fourthParam << "]" << "realName = ["<< fifthParam << "]" ;
 	std::cout << "sixthParam = ["<< sixthParam <<"]" << std::endl;
 	if (sixthParam.length() > 0)
@@ -173,8 +181,9 @@ int Authenticator::checkUser(const Server &server, int fd)
 		server.sendMsg("TOO MANY PARAMS IN USER()", fd);
 		return (false);
 	}
-	if (!firstParam.length() || !secondParam.length() || !thirdParam.length() || !fourthParam.length() || !fifthParam.length())
+	if (fifthParam.length() == 0)
 	{
+		this->toUpper(firstParam);
 		server.sendMsg(firstParam + " : not enough parameters", fd);
 		return (false);
 	}
