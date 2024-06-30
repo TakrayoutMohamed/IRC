@@ -15,6 +15,7 @@
 # include <netdb.h> /*gethostbyname()*/
 # include <fcntl.h> /*fcntl()*/
 # include <signal.h>
+# include <ctime>
 # include <poll.h> /*poll()*/
 # include <vector>
 # include <map>
@@ -36,6 +37,7 @@ class Server
 		struct sockaddr_in		_clientAddr, _serverAddr;
 		std::stringstream		_stringStream;
 	public:
+		std::time_t createDate;
 	
 	protected:
 		/*setter member functions*/
@@ -97,4 +99,8 @@ int	convertStringToInt(const std::string &str);
 bool	hasSpace(const std::string &str);
 
 int	countNewLines(const std::string &line);
+const std::string convertIntToSting(int nbr);
+const std::string getHourMinute(const time_t &t);
+const std::string getYearMounthDay(const time_t &t);
+const std::string getDateTime(const time_t &t);
 #endif

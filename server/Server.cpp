@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server() : _password("DefaultPassword"), _port(0) 
+Server::Server() : _password("DefaultPassword"), _port(0) , createDate(std::time(NULL))
 {
 
 }
@@ -13,7 +13,7 @@ Server::Server(const Server &obj)
 	}
 }
 
-Server::Server(const std::string &password, const std::string &port) : _password("DefaultPassword"), _port(0)
+Server::Server(const std::string &password, const std::string &port) : _password("DefaultPassword"), _port(0), createDate(std::time(NULL))
 {
 	int	port_nbr;
 
@@ -33,6 +33,7 @@ const Server &Server::operator=(const Server &obj)
 	{
 		this->_password = obj._password;
 		this->_port = obj._port;
+		this->createDate = obj.createDate;
 	}
 	return (*this);
 }
@@ -316,6 +317,8 @@ void Server::clientWithEvent(int &readyFds,const int clientIndex)
 		std::getline(_stringStream, line, '\n');
 		if (line.find('\r') != line.npos)
 			line.erase(line.find('\r'));
+		if (line.compare("\n") == 0 || line.length() == 0)
+			continue;
 		if (triggeredClient.isAuthenticated == false)
 			Authenticator::checkClientAuthentication(*this, triggeredClient, line);
 		else
@@ -388,6 +391,46 @@ bool Server::handleCtrlD(std::string &line, std::string &bufferString)
 		bufferString = "";
 	}
 	return (true);
+}
+
+const std::string convertIntToSting(int nbr)
+{
+	std::stringstream sstream;
+
+	sstream << nbr;
+	return (sstream.str());
+}
+
+const std::string	getHourMinute(const time_t &t)
+{
+	std::string hour;
+	std::string minute;
+	const std::tm* localTime;
+
+	localTime = std::localtime(&t);
+	hour = convertIntToSting(localTime->tm_hour);
+	minute = convertIntToSting(localTime->tm_min);
+
+	return (hour + ":" + minute);
+}
+
+const std::string	getYearMounthDay(const time_t &t)
+{
+	std::string year;
+	std::string month;
+	std::string day;
+	const std::tm* localTime;
+
+	localTime = std::localtime(&t);
+	year = convertIntToSting(localTime->tm_year + 1900);
+	month = convertIntToSting(localTime->tm_mon + 1);
+	day = convertIntToSting(localTime->tm_mday);
+	return (day + " " + month + " " + year);
+}
+
+const std::string	getDateTime(const time_t &t)
+{
+	return (getYearMounthDay(t) + " at " + getHourMinute(t));
 }
 
 /********************************Exceptions*********************************/
