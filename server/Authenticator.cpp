@@ -206,6 +206,24 @@ void printClientData(const Client &client)
 	std::cout << "*************************************" << std::endl;
 }
 
+void Authenticator::welcomeMsg(const Server &server, const Client &client)
+{
+	std::string rplWelcome;
+	std::string rplYourhost;
+	std::string rplCreated;
+	std::string rplMyInfo;
+
+	rplWelcome = client.ip + " : Welcome to FT_IRC  Network, ";
+	rplWelcome += client.nickName +"!"+ client.userName + "@" + client.ip;
+	server.sendMsg(rplWelcome, client.fd);
+	rplYourhost = client.ip + " : your host is " + client.serverName + ", runing version 1.1 ";
+	server.sendMsg(rplYourhost, client.fd);
+	rplCreated = client.ip + " : this server was created " + getDateTime(server.createDate);
+	server.sendMsg(rplCreated, client.fd);
+	rplMyInfo = ":Host: " + client.ip + ", Version: 1.1, User mode: none, Channel modes: o, t, k, i, l !";
+	server.sendMsg(rplMyInfo, client.fd);
+}
+
 int Authenticator::checkClientAuthentication(Server &server, Client &client, std::string &line)
 {
 	Authenticator auth;
@@ -246,7 +264,10 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 	}
 	// std::cout << " is Nick set" << client._isNickSet << " is User set" << client._isUserSet << " is Pass set" << client._isPassSet <<  std::endl;
 	if (client._isNickSet && client._isPassSet && client._isUserSet)
+	{
 		client.isAuthenticated = true;
+		auth.welcomeMsg(server, client);
+	}
 	return (true);
 }
 

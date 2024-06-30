@@ -26,6 +26,7 @@ class Authenticator
 		int			checkNick(Server &obj, int fd);
         void 		parseUser(std::string &cmd, std::string &user, std::string &hostName, std::string &servName, std::string &realName, std::string &sixthParam);
 		int			checkUser(const Server &obj, int fd);
+		void		welcomeMsg(const Server &server, const Client &client);
         /// @brief 		this member meant to check if the client entered his information as it should (password , user , nick ,realname)
         /// @param obj  an obj of the server
         static int checkClientAuthentication(Server &server, Client &client, std::string &line);
