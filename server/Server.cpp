@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server() : _password("DefaultPassword"), _port(0) , createDate(std::time(NULL))
+Server::Server() : _password("DefaultPassword"), _port(0) , _createDate(std::time(NULL))
 {
 
 }
@@ -13,7 +13,7 @@ Server::Server(const Server &obj)
 	}
 }
 
-Server::Server(const std::string &password, const std::string &port) : _password("DefaultPassword"), _port(0), createDate(std::time(NULL))
+Server::Server(const std::string &password, const std::string &port) : _password("DefaultPassword"), _port(0), _createDate(std::time(NULL))
 {
 	int	port_nbr;
 
@@ -33,7 +33,7 @@ const Server &Server::operator=(const Server &obj)
 	{
 		this->_password = obj._password;
 		this->_port = obj._port;
-		this->createDate = obj.createDate;
+		this->_createDate = obj._createDate;
 	}
 	return (*this);
 }
@@ -169,6 +169,11 @@ const int &Server::getPort(void) const
 const int &Server::getClientFd(void) const
 {
    return (this->_clientFd);
+}
+
+const std::time_t &Server::getCreateDate(void) const
+{
+    return (this->_createDate);
 }
 
 std::map<int, Client> &Server::getData(void)

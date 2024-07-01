@@ -23,7 +23,6 @@
 # include "./../exception/Exceptions.hpp"
 # include "./Client.hpp"
 
-// class Client;
 class Server
 {
 	private:
@@ -36,39 +35,28 @@ class Server
 		socklen_t				_clientLen, _serverLen;
 		struct sockaddr_in		_clientAddr, _serverAddr;
 		std::stringstream		_stringStream;
+		std::time_t				_createDate;
+	/************************* Methods ************************/
 	public:
-		std::time_t createDate;
-	
-	protected:
-		/*setter member functions*/
-		void setPassword(const std::string &);
-		void setPort(const int &);
-	
-		Server(const Server &obj); //till now no need 
-		const Server &operator=(const Server &obj);//till now no need
-
-		/*EXCEPTIONS : INNER CLASSES*/
-		class	PortNotAcceptedException : public std::exception
-		{
-			virtual const char *what() const throw();
-		} PortNotAcceptedException;
-	public:
-		Server(); //till now no need
-		Server(const std::string &passwd, const std::string &port);
-		~Server();//till now no need
 		static void	runServer(const std::string &password, const std::string &port);
 		void sendMsg(const std::string &msg, int fd) const;
-		void addData(int fd, const Client &client);
-
-		/*setter member functions*/
-		// void setClient(const Client &);
 		/*getter member functions*/
 		const std::string &getPassword(void) const;
 		const int &getPort(void) const;
 		const int &getClientFd(void) const;
+		const std::time_t &getCreateDate(void) const;
 		std::map<int, Client> &getData(void);
-	/************************* Methods ************************/
+	protected:
+		Server(const std::string &passwd, const std::string &port);
+		~Server();
+		void addData(int fd, const Client &client);
+		/*setter member functions*/
+		void setPassword(const std::string &);
+		void setPort(const int &);
 	private:
+		Server();
+		Server(const Server &obj); 
+		const Server &operator=(const Server &obj);
 		bool	isValidPassword(const std::string &) const;
 		bool	isValidPort(const int) const;
 		void	openSocket(void);
@@ -80,27 +68,31 @@ class Server
 		int		acceptClientSocket(void);
 		int		saveClientData(void);
 		void	clientCloseConnextion(const int clientIndex);
-        bool	recieveMsg(const int fd, std::string &line);
-        void clientWithEvent(int &readyFds, const int clientIndex);
-        bool isAuthenticationCommand(std::string line);
-        std::stringstream &pushLineToStream(const std::string &line);
-        void handlMultiLineFeed(std::string &line, std::string &bufferString);
-        /// @brief
-        /// @param line the message sended by a client
-        /// @param bufferString the previous message sended by a client and it does not has a new line
-        /// @return true if the line has a new line char on it
-        bool	handleCtrlD(std::string &line, std::string &bufferString);
+		bool	recieveMsg(const int fd, std::string &line);
+		void	clientWithEvent(int &readyFds, const int clientIndex);
+		bool	isAuthenticationCommand(std::string line);
+		std::stringstream &pushLineToStream(const std::string &line);
+		void	handlMultiLineFeed(std::string &line, std::string &bufferString);
+		/// @brief
+		/// @param line the message sended by a client
+		/// @param bufferString the previous message sended by a client and it does not has a new line
+		/// @return true if the line has a new line char on it
+		bool	handleCtrlD(std::string &line, std::string &bufferString);
 		int		deleteClientFd(int fd);
 		int		readClientFd(int fd);
+		/*EXCEPTIONS : INNER CLASSES*/
+		class	PortNotAcceptedException : public std::exception
+		{
+			virtual const char *what() const throw();
+		} PortNotAcceptedException;
 
 };
 
-int	convertStringToInt(const std::string &str);
-bool	hasSpace(const std::string &str);
-
-int	countNewLines(const std::string &line);
-const std::string convertIntToSting(int nbr);
-const std::string getHourMinute(const time_t &t);
-const std::string getYearMounthDay(const time_t &t);
-const std::string getDateTime(const time_t &t);
+int					convertStringToInt(const std::string &str);
+bool				hasSpace(const std::string &str);
+int					countNewLines(const std::string &line);
+const std::string	convertIntToSting(int nbr);
+const std::string	getHourMinute(const time_t &t);
+const std::string	getYearMounthDay(const time_t &t);
+const std::string	getDateTime(const time_t &t);
 #endif

@@ -218,7 +218,7 @@ void Authenticator::welcomeMsg(const Server &server, const Client &client)
 	server.sendMsg(rplWelcome, client.fd);
 	rplYourhost = client.ip + " : your host is " + client.serverName + ", runing version 1.1 ";
 	server.sendMsg(rplYourhost, client.fd);
-	rplCreated = client.ip + " : this server was created " + getDateTime(server.createDate);
+	rplCreated = client.ip + " : this server was created " + getDateTime(server.getCreateDate());
 	server.sendMsg(rplCreated, client.fd);
 	rplMyInfo = ":Host: " + client.ip + ", Version: 1.1, User mode: none, Channel modes: o, t, k, i, l !";
 	server.sendMsg(rplMyInfo, client.fd);
