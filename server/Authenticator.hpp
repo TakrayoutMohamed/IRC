@@ -14,10 +14,12 @@ class Authenticator
 		std::string _nick;
 		std::string _user;
 		std::string _realName;
-		
+	/****************************Methods*****************************/
 	public:
 		Authenticator(/* args */);
 		~Authenticator();
+        static int checkClientAuthentication(Server &server, Client &client, std::string &line);
+	private:
         std::stringstream &pushLineToStream(const std::string &line);
 		void		toUpper(std::string &str);
         void 		parsePass(std::string &cmd, std::string &password, std::string &third);
@@ -29,7 +31,6 @@ class Authenticator
 		void		welcomeMsg(const Server &server, const Client &client);
         /// @brief 		this member meant to check if the client entered his information as it should (password , user , nick ,realname)
         /// @param obj  an obj of the server
-        static int checkClientAuthentication(Server &server, Client &client, std::string &line);
 		/*setters*/
 
 		void		setNick(const std::string &nick);

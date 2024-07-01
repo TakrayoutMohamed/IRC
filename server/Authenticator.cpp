@@ -1,6 +1,5 @@
 #include "./Authenticator.hpp"
 #include "Authenticator.hpp"
-#include <iostream>
 
 Authenticator::Authenticator(/* args */) : _nick(""), _user(""), _realName("")
 {
@@ -46,7 +45,6 @@ int Authenticator::checkPassword(const Server &server, int fd)
 	std::string thirdParam;
 
 	parsePass(pass, password, thirdParam);
-	std::cout << "pass = ["<< pass <<"]" << "password = ["<< password <<"]" << "thirdParam = ["<< thirdParam <<"]" << std::endl;
 	if (thirdParam.length() > 0)
 	{
 		server.sendMsg("TOO MANY PARAMS ()", fd);
@@ -120,7 +118,6 @@ int Authenticator::checkNick(Server &server, int fd)
 	std::string thirdParam;
 
 	parseNick(firstParam, secondParam, thirdParam);
-	std::cout << "nick = ["<< firstParam <<"]" << "nickname = ["<< secondParam <<"]" << std::endl;
 	if (thirdParam.length() > 0)
 	{
 		server.sendMsg("TOO MANY PARAMS ()", fd);
@@ -174,8 +171,6 @@ int Authenticator::checkUser(const Server &server, int fd)
 	std::string sixthParam;
 
 	parseUser(firstParam, secondParam, thirdParam, fourthParam, fifthParam, sixthParam);
-	std::cout << "user = ["<< firstParam <<"]" << "userName = ["<< secondParam <<"]" << "servername = ["<< thirdParam <<"]" << "hostname = ["<< fourthParam << "]" << "realName = ["<< fifthParam << "]" ;
-	std::cout << "sixthParam = ["<< sixthParam <<"]" << std::endl;
 	if (sixthParam.length() > 0)
 	{
 		server.sendMsg("TOO MANY PARAMS IN USER()", fd);
@@ -262,7 +257,6 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 		server.sendMsg(": you have not registered", client.fd);
 		printClientData(client);
 	}
-	// std::cout << " is Nick set" << client._isNickSet << " is User set" << client._isUserSet << " is Pass set" << client._isPassSet <<  std::endl;
 	if (client._isNickSet && client._isPassSet && client._isUserSet)
 	{
 		client.isAuthenticated = true;
