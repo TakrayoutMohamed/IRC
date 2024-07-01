@@ -69,10 +69,10 @@ class Server
 		int		saveClientData(void);
 		void	clientCloseConnextion(const int clientIndex);
 		bool	recieveMsg(const int fd, std::string &line);
-		void	clientWithEvent(int &readyFds, const int clientIndex);
+		void	clientWithEvent(const int clientIndex);
 		bool	isAuthenticationCommand(std::string line);
 		std::stringstream &pushLineToStream(const std::string &line);
-		void	handlMultiLineFeed(std::string &line, std::string &bufferString);
+		void	handlMultiLineFeed(Client &client, std::string &line);
 		/// @brief
 		/// @param line the message sended by a client
 		/// @param bufferString the previous message sended by a client and it does not has a new line

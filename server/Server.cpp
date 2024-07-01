@@ -71,7 +71,7 @@ void Server::runServer(const std::string &password, const std::string &port)
 			{
 				if (!(serv._socketsFds[i].revents & (POLLRDNORM)))
 					continue ;
-				serv.clientWithEvent(readyFds, i);
+				serv.clientWithEvent(i);
 			}
 		}
 	}
@@ -293,10 +293,8 @@ bool Server::recieveMsg(const int fd, std::string &line)
 	return (true);
 }
 
-void Server::clientWithEvent(int &readyFds,const int clientIndex)
+void Server::clientWithEvent(const int clientIndex)
 {
-	(void) readyFds;
-	int			countNewLine;
 	std::string line;
 	Client		&triggeredClient = this->getData().find(this->_socketsFds[clientIndex].fd)->second;
 
@@ -314,27 +312,7 @@ void Server::clientWithEvent(int &readyFds,const int clientIndex)
 		this->clientCloseConnextion(clientIndex);
 		return ;
 	}
-	countNewLine = countNewLines(line);
-	this->pushLineToStream(line);
-	while (countNewLine-- >= 1)
-	{
-		line.clear();
-		std::getline(_stringStream, line, '\n');
-		if (line.find('\r') != line.npos)
-			line.erase(line.find('\r'));
-		if (line.compare("\n") == 0 || line.length() == 0)
-			continue;
-		if (triggeredClient.isAuthenticated == false)
-			Authenticator::checkClientAuthentication(*this, triggeredClient, line);
-		else
-		{
-			if (isAuthenticationCommand(line))
-				this->sendMsg(":"+ triggeredClient.serverName +" 462 "+ triggeredClient.nickName +" :You may not reregister", triggeredClient.fd);
-			else
-				this->sendMsg(triggeredClient.ip + "you have been authenticated successfully", triggeredClient.fd);
-			//here YOU ARE GOING TO PASS THE LINE TO THE COMMANDS PART 
-		}
-	}
+	handlMultiLineFeed(triggeredClient, line);
 }
 
 bool Server::isAuthenticationCommand(std::string line)
@@ -363,6 +341,34 @@ std::stringstream	&Server::pushLineToStream(const std::string &line)
 	this->_stringStream.str(line);
 	return (this->_stringStream);
 }
+
+void Server::handlMultiLineFeed(Client &client, std::string &line)
+{
+	int countNewLine;
+
+	countNewLine = countNewLines(line);
+	this->pushLineToStream(line);
+	while (countNewLine-- >= 1)
+	{
+		line.clear();
+		std::getline(_stringStream, line, '\n');
+		if (line.find('\r') != line.npos)
+			line.erase(line.find('\r'));
+		if (line.compare("\n") == 0 || line.length() == 0)
+			continue;
+		if (client.isAuthenticated == false)
+			Authenticator::checkClientAuthentication(*this, client, line);
+		else
+		{
+			if (isAuthenticationCommand(line))
+				this->sendMsg(":"+ client.serverName +" 462 "+ client.nickName +" :You may not reregister", client.fd);
+			else
+				this->sendMsg(client.ip + "you have been authenticated successfully", client.fd);
+			//here YOU ARE GOING TO PASS THE LINE TO THE COMMANDS PART 
+		}
+	}
+}
+
 
 int	countNewLines(const std::string &line)
 {
