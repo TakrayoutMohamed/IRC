@@ -270,13 +270,20 @@ int Server::saveClientData(void)
 
 void Server::clientCloseConnextion(const int clientIndex)
 {
+	std::string nick;
+	std::string ip;
+	Client &client = this->getData().find(_socketsFds[clientIndex].fd)->second;
+
+	nick = client.nickName;
+	ip = client.ip;
 	//here client closed connection than you should remove it since its not exist any more
 	// here i need to use the quit command so that the users 
 	//notified about the close of connection for this client
-	std::cerr << "the client with fd " << this->_socketsFds[clientIndex].fd << " has closed the connection"  << std::endl;
-	close(this->_socketsFds[clientIndex].fd);
-	this->getData().erase(_socketsFds[clientIndex].fd);
-	this->_socketsFds.erase(this->_socketsFds.begin() + clientIndex, this->_socketsFds.begin() + clientIndex + 1);
+	std::cerr << "Client " << ip << " with nickname ["<< nick <<"] has closed the connection"  << std::endl;
+	close(client.fd); // close the file descriptor of the client 
+	this->getData().erase(client.fd);// removes from the map of clients 
+	this->_socketsFds.erase(this->_socketsFds.begin() + clientIndex);// removes from the vector of file descriptors
+	
 }
 
 bool Server::recieveMsg(const int fd, std::string &line)
