@@ -398,14 +398,6 @@ bool Server::handleCtrlD(std::string &line, std::string &bufferString)
 	return (true);
 }
 
-const std::string convertIntToSting(int nbr)
-{
-	std::stringstream sstream;
-
-	sstream << nbr;
-	return (sstream.str());
-}
-
 const std::string	getHourMinute(const time_t &t)
 {
 	std::string hour;
@@ -413,8 +405,8 @@ const std::string	getHourMinute(const time_t &t)
 	const std::tm* localTime;
 
 	localTime = std::localtime(&t);
-	hour = convertIntToSting(localTime->tm_hour);
-	minute = convertIntToSting(localTime->tm_min);
+	hour = convertNbrToSting<int>(localTime->tm_hour);
+	minute = convertNbrToSting<int>(localTime->tm_min);
 
 	return (hour + ":" + minute);
 }
@@ -427,9 +419,9 @@ const std::string	getYearMounthDay(const time_t &t)
 	const std::tm* localTime;
 
 	localTime = std::localtime(&t);
-	year = convertIntToSting(localTime->tm_year + 1900);
-	month = convertIntToSting(localTime->tm_mon + 1);
-	day = convertIntToSting(localTime->tm_mday);
+	year = convertNbrToSting<int>(localTime->tm_year + 1900);
+	month = convertNbrToSting<int>(localTime->tm_mon + 1);
+	day = convertNbrToSting<int>(localTime->tm_mday);
 	return (day + " " + month + " " + year);
 }
 

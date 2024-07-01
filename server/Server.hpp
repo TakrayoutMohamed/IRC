@@ -91,8 +91,16 @@ class Server
 int					convertStringToInt(const std::string &str);
 bool				hasSpace(const std::string &str);
 int					countNewLines(const std::string &line);
-const std::string	convertIntToSting(int nbr);
+template <typename T>
+const std::string convertNbrToSting(T nbr)
+{
+    std::stringstream sstream;
+
+	sstream << nbr;
+	return (sstream.str());
+}
 const std::string	getHourMinute(const time_t &t);
 const std::string	getYearMounthDay(const time_t &t);
 const std::string	getDateTime(const time_t &t);
 #endif
+
