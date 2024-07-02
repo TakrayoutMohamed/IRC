@@ -251,13 +251,15 @@ int Server::saveClientData(void)
 	tmp.fd = _clientFd;
 	tmp.events = POLLIN | POLLRDNORM;
 	tmp.revents = 0;
-	//here check the authentication
 	if (gethostname(hostname, _SC_HOST_NAME_MAX))
 	{
-		sendMsg("Quit : error while trying to get the hostname", _clientFd);
-		/*here i need to apply the quit command*/
-		// _socketsFds.erase(std::find(_socketsFds.begin(), _socketsFds.end(), _clientFd));
+		std::string quitMsg = ": QUIT :Client disconnected";
+		// sendMsg("Quit : error while trying to get the hostname", _clientFd);
+		std::cout << ":" << inet_ntoa(_clientAddr.sin_addr) << " QUIT :Client disconnected" << std::endl;
+		sendBroadcastMsgToClients(quitMsg);
+		sendBroadcastMsgToChannels(quitMsg);
 		close(_clientFd);
+		return (1);
 	}
 	client.fd = _clientFd;
 	client.hostName = hostname;
@@ -268,6 +270,49 @@ int Server::saveClientData(void)
     return 0;
 }
 
+int	Server::deleteClientFd(std::vector<pollfd>::iterator position)
+{
+	this->_socketsFds.erase(position);
+	return (0);
+}
+
+void	Server::deleteClient(int fd)
+{
+	this->getData().erase(fd);
+}
+
+void	Server::applyQuitCommand(int clientIndex)
+{
+	std::string nick;
+	std::string ip;
+	std::string quitMsg;
+	Client &client = this->getData().find(_socketsFds[clientIndex].fd)->second;
+
+	quitMsg = ":" + nick + " QUIT :Client disconnected";
+	close(client.fd); // close the file descriptor of the client 
+	deleteClient(client.fd);// removes from the map of clients 
+	deleteClientFd(this->_socketsFds.begin() + clientIndex);// removes from the vector of file descriptors
+	sendBroadcastMsgToClients(quitMsg);
+	sendBroadcastMsgToChannels(quitMsg);
+}
+
+void	Server::sendBroadcastMsgToClients(std::string &quitMsg)
+{
+	std::map<int, Client>::const_iterator it;
+	
+	it = this->getData().begin();
+	while (it != this->getData().end())
+	{
+		this->sendMsg(quitMsg, it->second.fd);
+		it++;
+	}
+}
+
+void	Server::sendBroadcastMsgToChannels(std::string &quitMsg)
+{
+	(void) quitMsg;
+}
+
 void Server::clientCloseConnextion(const int clientIndex)
 {
 	std::string nick;
@@ -276,14 +321,8 @@ void Server::clientCloseConnextion(const int clientIndex)
 
 	nick = client.nickName;
 	ip = client.ip;
-	//here client closed connection than you should remove it since its not exist any more
-	// here i need to use the quit command so that the users 
-	//notified about the close of connection for this client
-	std::cerr << "Client " << ip << " with nickname ["<< nick <<"] has closed the connection"  << std::endl;
-	close(client.fd); // close the file descriptor of the client 
-	this->getData().erase(client.fd);// removes from the map of clients 
-	this->_socketsFds.erase(this->_socketsFds.begin() + clientIndex);// removes from the vector of file descriptors
-	
+	std::cout << "Client " << ip << " with nickname ["<< nick <<"] has closed the connection"  << std::endl;
+	applyQuitCommand(clientIndex);
 }
 
 bool Server::recieveMsg(const int fd, std::string &line)

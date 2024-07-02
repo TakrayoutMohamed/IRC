@@ -67,8 +67,13 @@ class Server
 		int		checkFdsForNewEvents(void);
 		int		acceptClientSocket(void);
 		int		saveClientData(void);
-		void	clientCloseConnextion(const int clientIndex);
-		bool	recieveMsg(const int fd, std::string &line);
+        int		deleteClientFd(std::vector<pollfd>::iterator __position);
+        void	deleteClient(int fd);
+        void	applyQuitCommand(int clientIndex);
+        void	sendBroadcastMsgToClients(std::string &quitMsg);
+        void	sendBroadcastMsgToChannels(std::string &quitMsg);
+        void	clientCloseConnextion(const int clientIndex);
+        bool	recieveMsg(const int fd, std::string &line);
 		void	clientWithEvent(const int clientIndex);
 		bool	isAuthenticationCommand(std::string line);
 		std::stringstream &pushLineToStream(const std::string &line);
@@ -78,9 +83,7 @@ class Server
 		/// @param bufferString the previous message sended by a client and it does not has a new line
 		/// @return true if the line has a new line char on it
 		bool	handleCtrlD(std::string &line, std::string &bufferString);
-		int		deleteClientFd(int fd);
-		int		readClientFd(int fd);
-		/*EXCEPTIONS : INNER CLASSES*/
+        /*EXCEPTIONS : INNER CLASSES*/
 		class	PortNotAcceptedException : public std::exception
 		{
 			virtual const char *what() const throw();
