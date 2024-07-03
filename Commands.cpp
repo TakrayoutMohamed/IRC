@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/03 16:25:39 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/03 18:01:23 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,8 +113,6 @@ void    remove_member(Channels &channel, std::string &name){
 int check_channel(int fd, std::vector<Channels> &channels, std::string &channel_name){
     int flag = -1;
     std::string buffer;
-    if (channel_name[0] != '#')
-        return (flag);
     for (size_t i = 0;i < channels.size();i++)
     {
         if (channel_name == channels[i].channel_name)
@@ -327,6 +325,11 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
 }
 
 int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::vector<Channels> &channels){
+    for (size_t i = 0;i < cmds.size();i++)
+    {
+        std::cout << cmds[i] << " ";
+    }
+    std::cout << std::endl;
     size_t arg = 0;
     char sign = '+';
     std::string error = "i";
@@ -678,13 +681,18 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
     {
         if (check_channel(fd, channels, cmds[1]) >= 0)
         {
+            puts("the channel does exist");
             flag = check_channel(fd, channels, cmds[1]);
+            puts("1");
             if (channels[flag].is_topic)
             {
+                puts("the topic is set to true");
                 if (is_admin(channels[flag], client.nickName))
                 {
+                    puts("u are an admin u have the permission");
                     if (cmds.size() == 2)
                     {
+                        puts("just display the current topic set");
                         buffer = "Topic: " + channels[flag].channel_topic + "\r\n";
                         send(fd, buffer.c_str(), buffer.length(), 0);
                         if (channels[flag].topic_time)
@@ -695,6 +703,7 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
                     }
                     else if(cmds.size() >= 3)
                     {
+                        puts("set a new topic");
                         for (size_t i = 2;i < cmds.size();i++)
                         {
                             topic += cmds[i];
@@ -709,35 +718,36 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
                 }
                 else
                 {
+                    puts("u don't have the permission");
                     buffer = "Error(482): " + channels[flag].channel_name + " :You're not channel operato\r\n";
                     send(fd, buffer.c_str(), buffer.length(), 0);
                 }
             }
             else
             {
-                if (cmds.size() == 2)
+                puts("the channel doesn't have a topic");
+                if (cmds.size() == 2){
+                    buffer = ":ircserver 331 " + client.nickName + " " + channels[flag].channel_name + " :" + channels[flag].channel_topic + "\r\n";
+                    send(fd, buffer.c_str(), buffer.length(), 0);
+                    // if (channels[flag].topic_time)
+                    // {
+                    //     buffer = channels[flag].who_set_topic + "set the topic at: " + myto_string(channels[flag].topic_time) + "\r\n";
+                    //     send(fd, buffer.c_str(), buffer.length(), 0);
+                    // }
+                }
+                else if(cmds.size() >= 3)
+                {
+                    for (size_t i = 2;i < cmds.size();i++)
                     {
-                        buffer = "Topic: " + channels[flag].channel_topic + "\r\n";
-                        send(fd, buffer.c_str(), buffer.length(), 0);
-                        if (channels[flag].topic_time)
-                        {
-                            buffer = channels[flag].who_set_topic + "set the topic at: " + myto_string(channels[flag].topic_time) + "\r\n";
-                            send(fd, buffer.c_str(), buffer.length(), 0);
-                        }
+                        topic += cmds[i];
+                        if (i+1 < cmds.size())
+                            topic += " ";
                     }
-                    else if(cmds.size() >= 3)
-                    {
-                        for (size_t i = 2;i < cmds.size();i++)
-                        {
-                            topic += cmds[i];
-                            if (i+1 < cmds.size())
-                                topic += " ";
-                        }
-                        channels[flag].who_set_topic = client.nickName;
-                        channels[flag].topic_time = time(0);
-                        channels[flag].channel_topic = topic;
-                        broad_cast(channels[flag], client.nickName, " has set topic: ", topic);
-                    }
+                    channels[flag].who_set_topic = client.nickName;
+                    channels[flag].topic_time = time(0);
+                    channels[flag].channel_topic = topic;
+                    broad_cast(channels[flag], client.nickName, " has set topic: ", topic);
+                }
             }
         }
     }
@@ -751,13 +761,11 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
 
 //need to handle sending to multiple clients a message the contain multiple words
 int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client> &mapo, std::vector<Channels> &channels){
-    puts("call the caps");
     int flag = 0;
     std::string buffer;
     if (cmds.size() >= 3)
     {
         if (check_channel(fd, channels, cmds[1]) >= 0){
-            puts("messsage is to a channel");
             //send it to all people in a channel because its a message to a channel
             flag = check_channel(fd, channels, cmds[1]);
             for (size_t j = 2;j < cmds.size();j++)
@@ -774,11 +782,9 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
         }
         else
         {
-            puts("the message is to a person");
             for (std::map<int, Client>::iterator ito = mapo.begin(); ito != mapo.end(); ito++) {
                 if (ito->second.nickName == cmds[1])
                 {
-                    puts("we find the person weeeeeeeeeee");
                     flag = 1;
                     for (size_t j = 2;j < cmds.size();j++)
                     {
