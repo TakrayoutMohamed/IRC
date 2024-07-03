@@ -1,45 +1,60 @@
-NAME = main
+NAME=ircserv
+CPP= c++ 
+CPPFLAGS= -Wall -Wextra -Werror -g
+RM=rm -f
+SERVERPATH= ./server/
+EXCEPTIONPATH= ./exception/
+SRC= $(SERVERPATH)Server.cpp $(SERVERPATH)Authenticator.cpp $(SERVERPATH)Client.cpp \
+	 $(EXCEPTIONPATH)PasswordNotAcceptedException.cpp $(EXCEPTIONPATH)CouldNotBindServerSocketException.cpp\
+	 $(EXCEPTIONPATH)CouldNotListenServerSocketException.cpp $(EXCEPTIONPATH)NewClientNotAcceptedException.cpp \
+	 $(EXCEPTIONPATH)NonBlockServerSocketException.cpp $(EXCEPTIONPATH)OpenServerSocketException.cpp \
+	 $(EXCEPTIONPATH)PollCheckFdsEventsException.cpp $(EXCEPTIONPATH)SocketCouldNotReuseAddrException.cpp \
+	 Commands.cpp
 
-COMPILER = c++
+HEADERS= $(SERVERPATH)Server.hpp $(SERVERPATH)Authenticator.hpp $(SERVERPATH)Client.hpp \
+		 $(EXCEPTIONPATH)PasswordNotAcceptedException.hpp $(EXCEPTIONPATH)CouldNotBindServerSocketException.hpp\
+		 $(EXCEPTIONPATH)CouldNotListenServerSocketException.hpp $(EXCEPTIONPATH)NewClientNotAcceptedException.hpp \
+		 $(EXCEPTIONPATH)NonBlockServerSocketException.hpp $(EXCEPTIONPATH)OpenServerSocketException.hpp \
+		 $(EXCEPTIONPATH)PollCheckFdsEventsException.hpp $(EXCEPTIONPATH)SocketCouldNotReuseAddrException.hpp \
+		 Commands.hpp
 
-FLAGS = -Wall -Wextra -Werror -std=c++98
+SRC_MAIN = main.cpp
 
-CPPFILES = 	main.cpp \
-			Commands.cpp
+	
+OBJ = $(SRC:.cpp=.o)
+OBJ_MAIN = $(SRC_MAIN:.cpp=.o)
 
 
-OBJCPP = $(CPPFILES:.cpp=.o)
+TDDPATH= ./TDD/
+SRC_TDD = $(TDDPATH)TestServer.cpp
+OBJ_TDD = $(SRC_TDD:.cpp=.o)
 
 all: $(NAME)
 
-test: 
-	$(COMPILER) $(FLAGS) tets.cpp -o testing_mode
-$(NAME): $(OBJCPP)
-	$(COMPILER) $(FLAGS) $(OBJCPP) -o $(NAME)
+$(NAME): $(OBJ_MAIN) $(OBJ)
+		@$(CPP) $(CPPFLAGS) -o $@ $(OBJ_MAIN) $(OBJ)
+		@echo "the files has ben archived successfully"
 
-%.o: %.cpp Client.hpp Commands.hpp
-	$(COMPILER) $(FLAGS) -c $< -o $@
+%.o: %.cpp $(HEADERS)
+		@$(CPP) $(CPPFLAGS) -o $@ -c $<
+		@echo "the file $@ has been created from $<"
+
 
 clean:
-	rm -rf $(OBJCPP)
-
+		@$(RM) $(OBJ) $(OBJ_TDD) $(OBJ_MAIN)
+		@echo "all the .o has been deleted successfully"
 fclean: clean
-	rm -rf $(NAME)
-
+		@$(RM) $(NAME)
+		@echo "the $(NAME) has been deleted"
+	
 re: fclean all
 
-# i > invite
-# k > key
-# l > limit
-# o > operator
-# t > topic
+.PHONY : clean $(NAME) all fclean re
+# /////////////////////////////////
+test:$(OBJ_TDD) $(OBJ) 
+		@$(CPP) $(CPPFLAGS) -o $@ $(OBJ_TDD) $(OBJ) 
+		@echo "the files has ben archived successfully"
 
-# i = +i > set invite
-# -i > remove invite
-
-# i and t doesn't need parameters
-# same goes for -l
-
-# -kkkkkkkkkkkk+lllkkkkkkk
-
-# mode #ch1 
+%.o: %.cpp $(HEADERS)
+		@$(CPP) $(CPPFLAGS) -o $@ -c $<
+		@echo "the file $@ has been created from $<"

@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:53 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/01 16:14:32 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/03 08:13:11 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,11 @@
 #include <map>
 #include <sstream>
 #include <cstring>
-#include <algorithm>
-#include <string>
+# include <algorithm>
+# include <string>
 #include <ctime>
 #include <sys/socket.h>
+# include "./server/Client.hpp"
 
 #define ERR_UNKNOWNCOMMAND 421
 #define ERR_NEEDMOREPARAMS 461
@@ -62,7 +63,7 @@ class Channels
         bool                        is_invite_only;         //invite
         std::vector<std::string>    invite_list;
         bool                        is_limit;               //limit
-        int                         members_limit;
+        size_t                         members_limit;
         bool                        is_topic;               //topic
         std::string                 channel_topic;
         long long                   topic_time;
@@ -75,4 +76,4 @@ class Channels
         Channels();
 };
 
-void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std::vector<Channels> channels);
+void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std::vector<Channels> &channels);
