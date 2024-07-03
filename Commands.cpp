@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/03 16:06:20 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/03 16:25:39 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -751,11 +751,13 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
 
 //need to handle sending to multiple clients a message the contain multiple words
 int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client> &mapo, std::vector<Channels> &channels){
+    puts("call the caps");
     int flag = 0;
     std::string buffer;
     if (cmds.size() >= 3)
     {
         if (check_channel(fd, channels, cmds[1]) >= 0){
+            puts("messsage is to a channel");
             //send it to all people in a channel because its a message to a channel
             flag = check_channel(fd, channels, cmds[1]);
             for (size_t j = 2;j < cmds.size();j++)
@@ -772,9 +774,11 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
         }
         else
         {
+            puts("the message is to a person");
             for (std::map<int, Client>::iterator ito = mapo.begin(); ito != mapo.end(); ito++) {
                 if (ito->second.nickName == cmds[1])
                 {
+                    puts("we find the person weeeeeeeeeee");
                     flag = 1;
                     for (size_t j = 2;j < cmds.size();j++)
                     {
@@ -782,8 +786,7 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
                         if (j+1 < cmds.size())
                             buffer += " ";
                     }
-                    buffer += "\n";
-                    buffer = "ircserver: " + mapo[fd].nickName + " " + buffer + "\r\n";
+                    buffer = ":" + mapo[fd].nickName + "!~" + mapo[fd].userName + "@" + mapo[fd].ip + " PRIVMSG " + mapo[fd].nickName + " " + buffer + "\r\n";
                     send(ito->second.fd, buffer.c_str(), buffer.length(), 0);
                     break;
                 }
