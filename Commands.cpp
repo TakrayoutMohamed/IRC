@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/05 14:18:25 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/05 17:06:54 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ void    lookfor(std::string look, std::vector<std::pair<std::string, std::string
 
 bool already_op(Channels &channel, std::string &name){
     for (size_t i = 0;i < channel.admin_list.size();i++){
-        if (channel.admin_list[i] == name)
+        if (channel.admin_list[i] == ("@"+name))
             return (true);
     }
     return (false);
@@ -370,9 +370,9 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
         {
             if (cmds.size() >= 3) // if this false it mean its mode with a valid channel name but nothing next so there should be some default output
             {
-                for (int i = 0;cmds[2][i];i++){
-                    while (cmds[2][i] && (cmds[2][i] == '+' || cmds[2][i] == '-')){
-                        sign = cmds[2][i];
+                for (int i = 0;cmds[2][i];i++){ // iterate on the modes 
+                    while (cmds[2][i] && (cmds[2][i] == '+' || cmds[2][i] == '-')){ // find the sign
+                        sign = cmds[2][i]; // store the sign
                         i++;
                     }
                     if (sign == '+' && cmds[2][i])
@@ -381,19 +381,25 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                         buffer1 += sign;
                     if (strchr("lkito", cmds[2][i]))
                         buffer1 += cmds[2][i];
-                    else{
+                    else {
                         error = cmds[2][i];
-                        buffer1 = ":ircserver 472: " + error + " is an unknown mode char to me\r\n";
+                        buffer1 = ":ircserver 472 " + client.nickName + " " + error + " :is an unknown mode char to me\r\n";
+                        send(fd, buffer1.c_str(), buffer1.length(), 0);
                         return 0;
                     }
                 }
                 for (int i = 0; buffer1[i]; i += 2){
-                    if (buffer1[i] && buffer1[i+1] && buffer1[i] == '+' && strchr("kl", buffer1[i+1]))
+                    if (buffer1[i] && buffer1[i+1] && buffer1[i] == '+' && strchr("kl", buffer1[i+1])){
+                        // puts("increase the number of required arguments");
                         arg++;
-                    else if (buffer1[i] && buffer1[i+1] && buffer1[i] == '-' && strchr("k", buffer1[i+1]))
+                    }
+                    else if (buffer1[i] && buffer1[i+1] && buffer1[i] == '-' && strchr("k", buffer1[i+1])){
+                        // puts("increase the number of required arguments");
                         arg++;
+                    }
                 }
-                if (arg > cmds.size() -2){
+                // printf("size-2=[%lu] required-arg=[%lu]\n", cmds.size(), arg);
+                if (arg > cmds.size() - 3){
                     buffer = ":ircserver 461: " + cmds[0] + " :Not enough parameters\r\n";
                     send(fd, buffer.c_str(), buffer.length(), 0);
                     return 0;
@@ -501,21 +507,24 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                         }
                     }
                     else if (!strncmp(&buffer1[i], "+o", 2)){
-                        
+                        puts("add a moderator");
                         //check if is he in the channel
                         if (in_channel(channels[flag], cmds[key]))
                         {    
                             if (already_op(channels[flag], cmds[key])){
+                                puts("the user already admin");
                                 //already admin ignore it
                                 key++;
                             }
                             else{
+                                puts("add the user to admin list");
                                 //add him to the admin list
                                 changes.push_back(std::make_pair("+o", cmds[key]));
-                                channels[flag].admin_list.push_back(cmds[key++]);
+                                channels[flag].admin_list.push_back("@"+cmds[key++]);
                             }
                         }
                         else{
+                            puts("channel doesn't exist");
                             //he is not in the channel
                             buffer = ":ircserver 401 " + client.nickName + " " + cmds[key] + " ::No such nick\r\n";
                             key++;
@@ -523,20 +532,24 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                         }
                     }
                     else if (!strncmp(&buffer1[i], "-o", 2)){
+                        puts("remove a moderator");
                         if (in_channel(channels[flag], cmds[key])){ 
                             if (!already_op(channels[flag], cmds[key])){
+                                puts("the user already admin");
                                 //he is not an op so do nothing
                                 key++;
                             }
                             else if (already_op(channels[flag], cmds[key])){
                                 //he is in the admin list so remove it
+                                puts("remove the user from admin list");
                                 changes.push_back(std::make_pair("-o", cmds[key]));
                                 remove_admin(channels[flag], cmds[key++]);
                             }
                         }
                         else{
+                            puts("channel doesn't exist");
                             //he is not in the channel
-                            buffer = ":ircserver error(401) " + client.nickName + " " + cmds[key] + " ::No such nick\r\n";
+                            buffer = ":ircserver 401 " + client.nickName + " " + cmds[key] + " ::No such nick\r\n";
                             key++;
                             send(fd, buffer.c_str(), buffer.length(), 0);
                         }
@@ -556,23 +569,25 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                         buffer1 += " ";
                 }
                 buffer = ":" + client.nickName + "!" + client.userName + client.ip + " MODE " + channels[flag].channel_name + " " + buffer1 + "\r\n";
-                send(fd, buffer.c_str(), buffer.length(), 0);
+                std::cout << "buffer >> " << buffer; 
+                broad_cast(channels[flag], buffer, "", "");
+                // send(fd, buffer.c_str(), buffer.length(), 0);
             }
             else{
                 //show the permissions on the channel
-                buffer = ":ircserver Error(461): " + cmds[0] + " :Not enough parameters\r\n";
+                buffer = ":ircserver 461: " + cmds[0] + " :Not enough parameters\r\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
                 return 0;
             }
         }
         else{
-            buffer = ":ircserver Error(403): " + cmds[1] + " :No such channel\r\n";
+            buffer = ":ircserver 403: " + cmds[1] + " :No such channel\r\n";
             send(fd, buffer.c_str(), buffer.length(), 0);
             return 0;
         }
     }
     else{
-        buffer = ":ircserver Error(461): " + cmds[0] + " :Not enough parameters\r\n";
+        buffer = ":ircserver 461: " + cmds[0] + " :Not enough parameters\r\n";
         send(fd, buffer.c_str(), buffer.length(), 0);
     }
     return (0);
