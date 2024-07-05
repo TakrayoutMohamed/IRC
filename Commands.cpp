@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/05 17:06:54 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/05 19:54:14 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,15 +67,16 @@ void    lookfor(std::string look, std::vector<std::pair<std::string, std::string
 
 bool already_op(Channels &channel, std::string &name){
     for (size_t i = 0;i < channel.admin_list.size();i++){
-        if (channel.admin_list[i] == ("@"+name))
+        if (channel.admin_list[i] == name)
             return (true);
     }
     return (false);
 }
 
 bool    in_channel(Channels &channel, std::string &name){
-    for (std::map<std::string, int>::iterator it =  channel.members.begin();it != channel.members.end();it++){
-        if (it->first == name)
+    std::string tmp = "@" + name;
+    for (std::map<std::string, int>::iterator it = channel.members.begin();it != channel.members.end();it++){
+        if (it->first == name || it->first == tmp)
             return (true);
     }
     return (false);
@@ -510,7 +511,7 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                         puts("add a moderator");
                         //check if is he in the channel
                         if (in_channel(channels[flag], cmds[key]))
-                        {    
+                        {   
                             if (already_op(channels[flag], cmds[key])){
                                 puts("the user already admin");
                                 //already admin ignore it
@@ -520,22 +521,22 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                                 puts("add the user to admin list");
                                 //add him to the admin list
                                 changes.push_back(std::make_pair("+o", cmds[key]));
-                                channels[flag].admin_list.push_back("@"+cmds[key++]);
+                                channels[flag].admin_list.push_back(cmds[key++]);
                             }
                         }
                         else{
-                            puts("channel doesn't exist");
+                            puts("user is not inside the channel");
                             //he is not in the channel
-                            buffer = ":ircserver 401 " + client.nickName + " " + cmds[key] + " ::No such nick\r\n";
+                            buffer = ":ircserver 401 " + client.nickName + " " + cmds[key] + " :No such nick\r\n";
                             key++;
                             send(fd, buffer.c_str(), buffer.length(), 0);
                         }
                     }
                     else if (!strncmp(&buffer1[i], "-o", 2)){
                         puts("remove a moderator");
-                        if (in_channel(channels[flag], cmds[key])){ 
+                        if (in_channel(channels[flag], cmds[key])){
                             if (!already_op(channels[flag], cmds[key])){
-                                puts("the user already admin");
+                                puts("the user is not admin");
                                 //he is not an op so do nothing
                                 key++;
                             }
@@ -543,13 +544,15 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                                 //he is in the admin list so remove it
                                 puts("remove the user from admin list");
                                 changes.push_back(std::make_pair("-o", cmds[key]));
-                                remove_admin(channels[flag], cmds[key++]);
+                                remove_admin(channels[flag], cmds[key]);
+                                key++;
                             }
                         }
                         else{
-                            puts("channel doesn't exist");
+                            puts("user is not inside the channel hhh");
                             //he is not in the channel
-                            buffer = ":ircserver 401 " + client.nickName + " " + cmds[key] + " ::No such nick\r\n";
+                            buffer = ":ircserver 401 " + client.nickName + " " + cmds[key] + " :No such nick\r\n";
+                            std::cout << buffer << std::endl;
                             key++;
                             send(fd, buffer.c_str(), buffer.length(), 0);
                         }
@@ -622,11 +625,11 @@ int KICK_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::ve
             {
                 if (channels[flag].admin_list[i] == client.nickName)
                 {
-                    for (std::map<std::string, int>::iterator it =  channels[flag].members.begin();it != channels[flag].members.end();it++)
+                    for (std::map<std::string, int>::iterator it = channels[flag].members.begin();it != channels[flag].members.end();it++)
                     {
                         if (it->first == cmds[2] || it->first == ("@" + cmds[2])){
                             // :reda1!~a@197.230.30.146 KICK #ch2 reda3 :reda3
-                            //u find the member and u kicked him
+                            puts("u find the member and u kicked him");
                             if (cmds.size() <= 3 || cmds[3] == ":")
                                 buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " KICK " + cmds[1] + " " + cmds[2] + " :" + cmds[2] + "\r\n";
                             else
@@ -642,15 +645,15 @@ int KICK_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::ve
                     for (size_t j = 0;j < channels[flag].admin_list.size();j++)
                     {
                         if (cmds[2] == channels[flag].admin_list[j]){
-                            //u find the member and u kicked him again in the admin list
+                            puts("u find the member and u kicked him again in the admin list");
                             channels[flag].admin_list[j].erase();
                             kicked = 1;
                             break ;
                         }
                     }
                     if (!kicked){
-                        //u couldn't find the member u wanna kick
-                        buffer = ":ircserver Error(441): " + cmds[2] + " " + channels[flag].channel_name + " They aren't on that channel\r\n";
+                        puts("u couldn't find the member u wanna kick");
+                        buffer = ":ircserver 441 " + cmds[2] + " " + channels[flag].channel_name + " They aren't on that channel\r\n";
                         send(fd, buffer.c_str(), buffer.length(), 0);
                     }
                 }
