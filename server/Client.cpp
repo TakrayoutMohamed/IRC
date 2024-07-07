@@ -27,6 +27,7 @@ const Client &Client::operator=(const Client &obj)
 {
 	if (this != &obj)
 	{
+		this->inside_channel	= obj.inside_channel;
 		this->_isPassSet		= obj._isPassSet;
 		this->_isNickSet		= obj._isNickSet;
 		this->_isUserSet		= obj._isUserSet;
