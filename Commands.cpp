@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/05 19:54:14 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/07 12:54:31 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,6 +113,7 @@ void    remove_member(Channels &channel, std::string &name){
 int check_channel(int fd, std::vector<Channels> &channels, std::string &channel_name, Client &client){
     int flag = -1;
     std::string buffer;
+    printf("%s\n", channel_name.c_str());
     for (size_t i = 0;i < channels.size();i++)
     {
         if (channel_name == channels[i].channel_name)
@@ -123,6 +124,7 @@ int check_channel(int fd, std::vector<Channels> &channels, std::string &channel_
     }
     if (flag == -1)
     {
+        puts("we can't find the channel in the server");
         buffer = ":ircserver 403 " + client.nickName + " " + channel_name + " :No such channel\r\n";
         send(fd, buffer.c_str(), buffer.length(), 0);
     }
@@ -810,9 +812,9 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
     std::string buffer1;
     if (cmds.size() >= 3)
     {
-        if (check_channel(fd, channels, cmds[1], mapo[fd]) >= 0){
+        if (cmds[1][0] == '#' && check_channel(fd, channels, cmds[1], mapo[fd]) >= 0){
             //the channel does exist
-            puts("the channel does exist");
+            puts("this message is to a channel");
             flag = check_channel(fd, channels, cmds[1], mapo[fd]);
             if (imInChannel(channels[flag], mapo[fd].nickName)){ // check if u are in the channel if yes then u can send the message in the channel
                 puts("im in the channel");
@@ -834,13 +836,14 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
             }
             else{
                 puts("im not in the channel");
-                buffer = ":ircserver: " + mapo[fd].nickName + " " + channels[flag].channel_name + ":You're not on that channel" + "\r\n";
+                buffer = ":ircserver: " + mapo[fd].nickName + " " + channels[flag].channel_name + " :You're not on that channel" + "\r\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
             }
         }
         else //the message is to a user
         {
-            puts("the channel doesn't exist");
+            if (cmds[1][0] == '#' )
+                return 0;
             for (std::map<int, Client>::iterator ito = mapo.begin(); ito != mapo.end(); ito++) { //search for the user in the server members
                 if (ito->second.nickName == cmds[1]) //if u find him send him the message
                 {
@@ -851,7 +854,7 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
                         if (j+1 < cmds.size())
                             buffer += " ";
                     }
-                    buffer = ":" + mapo[fd].nickName + "!~" + mapo[fd].userName + "@" + mapo[fd].ip + " PRIVMSG " + mapo[fd].nickName + " " + buffer + "\r\n";
+                    buffer = ":" + mapo[fd].nickName + "!" + mapo[fd].userName + "@" + mapo[fd].ip + " PRIVMSG " + cmds[1] + " " + buffer + "\r\n";
                     send(ito->second.fd, buffer.c_str(), buffer.length(), 0);
                     break;
                 }
