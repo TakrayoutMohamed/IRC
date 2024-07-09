@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/09 09:14:22 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/09 09:55:54 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,6 +174,48 @@ bool isHeInvited(Channels &channel, std::string &nickname){
             return (true);
     }
     return (false);
+}
+
+std::string longlongToString(long long value) {
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
+std::string sizetToString(size_t value) {
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
+std::string getChannelModes(Channels &channel){
+    std::string buffer1 = "";
+    std::string buffer2 = "";
+    bool flag = false;
+    if (channel.is_key){
+        buffer1 += "+k";
+        buffer2 += channel.channel_key;
+        flag = true;
+    }
+    if (channel.is_topic){
+        buffer1 += "+t";
+    }
+    if (channel.is_limit){
+        buffer1 += "+l";
+        if (flag)
+            buffer2 += " ";
+        buffer2 += sizetToString(channel.members_limit);
+        std::cout << "limit is:" << sizetToString(channel.members_limit) << std::endl;;
+    }
+    if (channel.is_invite_only){
+        buffer1 += "+i";
+    }
+    if (channel.is_topic){
+        buffer1 += "+t";
+    }
+    buffer1 = buffer1 + " " + buffer2;
+    std::cout << buffer1 << std::endl;
+    return (buffer1);
 }
 
 void    create_join_channel(std::vector<Channels> &channels, p_c &command, int index, Client &client){
@@ -353,6 +395,11 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
         {
             if (cmds.size() == 2){
                 //show the channel permissions and the time where the channel was created xD 324 and 329
+                buffer = ":ircserver 324 " + client.nickName + " " + cmds[1] + " " + getChannelModes(channels[flag]) + " \r\n";
+                send(fd, buffer.c_str(), buffer.length(), 0);
+                buffer = ":ircserver 329 " + client.nickName + " " + cmds[1] + " " + longlongToString(channels[flag].channel_create_time) + " \r\n";
+                send(fd, buffer.c_str(), buffer.length(), 0);
+                return 0;
             }
             if (cmds.size() >= 3) // if this false it mean its mode with a valid channel name but nothing next so there should be some default output
             {
@@ -491,24 +538,20 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                     }
                     else if (!strncmp(&buffer1[i], "+o", 2)){
                         puts("add a moderator");
-                        //check if is he in the channel
                         if (in_channel(channels[flag], cmds[key]))
                         {   
                             if (already_op(channels[flag], cmds[key])){
                                 puts("the user already admin");
-                                //already admin ignore it
                                 key++;
                             }
                             else{
                                 puts("add the user to admin list");
-                                //add him to the admin list
                                 changes.push_back(std::make_pair("+o", cmds[key]));
                                 channels[flag].admin_list.push_back(cmds[key++]);
                             }
                         }
                         else{
                             puts("user is not inside the channel");
-                            //he is not in the channel
                             buffer = ":ircserver 401 " + client.nickName + " " + cmds[key] + " :No such nick\r\n";
                             key++;
                             send(fd, buffer.c_str(), buffer.length(), 0);
@@ -519,11 +562,9 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                         if (in_channel(channels[flag], cmds[key])){
                             if (!already_op(channels[flag], cmds[key])){
                                 puts("the user is not admin");
-                                //he is not an op so do nothing
                                 key++;
                             }
                             else if (already_op(channels[flag], cmds[key])){
-                                //he is in the admin list so remove it
                                 puts("remove the user from admin list");
                                 changes.push_back(std::make_pair("-o", cmds[key]));
                                 remove_admin(channels[flag], cmds[key]);
@@ -532,7 +573,6 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                         }
                         else{
                             puts("user is not inside the channel hhh");
-                            //he is not in the channel
                             buffer = ":ircserver 401 " + client.nickName + " " + cmds[key] + " :No such nick\r\n";
                             std::cout << buffer << std::endl;
                             key++;
@@ -556,10 +596,8 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                 buffer = ":" + client.nickName + "!" + client.userName + client.ip + " MODE " + channels[flag].channel_name + " " + buffer1 + "\r\n";
                 std::cout << "buffer >> " << buffer; 
                 broad_cast(channels[flag], buffer, "", "");
-                // send(fd, buffer.c_str(), buffer.length(), 0);
             }
             else{
-                //show the permissions on the channel
                 buffer = ":ircserver 461 " + client.nickName + " " + cmds[0] + " :Not enough parameters\r\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
                 return 0;
@@ -578,7 +616,6 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
     return (0);
 }
 
-//kick is done
 int KICK_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::vector<Channels> &channels)
 {
     int kicked = 0;
@@ -644,7 +681,6 @@ int KICK_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::ve
     return 0;
 }
 
-//u need to finish this
 int INVITE_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client> &mapo, std::vector<Channels> &channels){
     int flag = -1;
     std::string buffer;
@@ -691,12 +727,7 @@ int INVITE_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client>
     return 0;
 }
 
-//topic +ns
 int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::vector<Channels> &channels){
-    // for (size_t i = 0;i< cmds.size();i++){
-    //     std::cout << cmds[i] + " ";
-    // }
-    // std::cout << std::endl;
     int flag = -1;
     std::string buffer;
     std::string topic;
