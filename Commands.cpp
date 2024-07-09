@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/09 09:55:54 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/09 17:27:57 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -688,7 +688,7 @@ int INVITE_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client>
     {
         if (isHeInServer(mapo, cmds[1])) // is the user we are invite in the connected to the server ?
         {
-            if (check_channel(fd, channels, cmds[2], mapo[fd]) > 0) // does the channel exist
+            if (check_channel(fd, channels, cmds[2], mapo[fd]) >= 0) // does the channel exist
             {
                 flag = check_channel(fd, channels, cmds[2], mapo[fd]);
                 if (in_channel(channels[flag], cmds[1])) // is he already in the cahnnel
@@ -704,7 +704,7 @@ int INVITE_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client>
                         buffer = ":ircserver 341 " + mapo[fd].nickName + " " + cmds[1] + " " + cmds[2] + "\r\n";
                         send(fd, buffer.c_str(), buffer.length(), 0);
                         buffer = ":" + mapo[fd].nickName + "!" + mapo[fd].userName + "@" + mapo[fd].ip + " INVITE " + cmds[1] + cmds[2] + "\r\n";
-                        send(channels[flag].members[cmds[1]], buffer.c_str(), buffer.length(), 0);
+                        send(get_fd(mapo, cmds[1]), buffer.c_str(), buffer.length(), 0);
                     }
                     else
                     {
