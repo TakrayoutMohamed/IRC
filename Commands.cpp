@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/09 07:17:28 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/09 09:14:22 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,7 @@ void    join_channel(std::vector<Channels> &channels, p_c &command, int index, C
             break ;
         }
     }
-    for (std::map<std::string, int>::iterator it =  channels[index].members.begin();it != channels[index].members.end();it++)
+    for (std::map<std::string, int>::iterator it = channels[index].members.begin();it != channels[index].members.end();it++)
     {
         buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " JOIN " + command.channels_name[index] + "\r\n";
         send(it->second, buffer.c_str(), buffer.length(), 0);
@@ -227,6 +227,7 @@ void    join_channel(std::vector<Channels> &channels, p_c &command, int index, C
         buffer = ":IRCSERVER 366 " + client.nickName + " " + command.channels_name[index] + " :End of /NAMES list.\r\n";
         send(it->second, buffer.c_str(), buffer.length(), 0);
     }
+    puts("joining process is done");
 }
 
 //if the someone was invited he can join without a key and even if the channel is in the limit
@@ -299,7 +300,6 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
                             }
                         }
                     }
-                    std::cout << command.channels_key.size() << std::endl;
                     if (channels[flag].is_key){
                         puts("are we about to segfault");
                         if (command.channels_key.size() >= p + 1 && channels[flag].channel_key == command.channels_key[p])
@@ -316,11 +316,13 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
                             send(fd, buffer.c_str(), buffer.length(), 0);
                         }
                     }
+                    puts("there is no restriction on joining the channel");
+                    join_channel(channels, command, flag, client);
                 }
             }
             else
             {
-                buffer = ":ircserver Error(403): " + cmds[0] + " :No such channel\r\n";
+                buffer = ":ircserver 403 " + cmds[0] + " :No such channel\r\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
             }
         }
@@ -349,6 +351,9 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
         }
         if (flag != -1) //if true the channel does exist
         {
+            if (cmds.size() == 2){
+                //show the channel permissions and the time where the channel was created xD 324 and 329
+            }
             if (cmds.size() >= 3) // if this false it mean its mode with a valid channel name but nothing next so there should be some default output
             {
                 for (int i = 0;cmds[2][i];i++){ // iterate on the modes 
@@ -561,7 +566,7 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
             }
         }
         else{
-            buffer = ":ircserver 403: " + cmds[1] + " :No such channel\r\n";
+            buffer = ":ircserver 403 " + cmds[1] + " :No such channel\r\n";
             send(fd, buffer.c_str(), buffer.length(), 0);
             return 0;
         }
@@ -592,53 +597,42 @@ int KICK_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::ve
         if (flag == -1)
         {
             //no such channel
-            buffer = ":ircserver Error(403): " + cmds[1] + " :No such channel\r\n";
+            buffer = ":ircserver 403 " + cmds[1] + " :No such channel\r\n";
             send(fd, buffer.c_str(), buffer.length(), 0);
         }
         else
         {
-            //the channel exist
-            for (size_t i = 0;i< client.inside_channel.size();i++)
-            {
-                if (channels[flag].admin_list[i] == client.nickName)
-                {
-                    for (std::map<std::string, int>::iterator it = channels[flag].members.begin();it != channels[flag].members.end();it++)
-                    {
-                        if (it->first == cmds[2] || it->first == ("@" + cmds[2])){
-                            // :reda1!~a@197.230.30.146 KICK #ch2 reda3 :reda3
-                            puts("u find the member and u kicked him");
-                            if (cmds.size() <= 3 || cmds[3] == ":")
-                                buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " KICK " + cmds[1] + " " + cmds[2] + " :" + cmds[2] + "\r\n";
-                            else
-                                buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " KICK " + cmds[1] + " " + cmds[2] + " :" + cmds[3] + "\r\n";
-                            broad_cast(channels[flag], buffer, "", "");
-                            channels[flag].members.erase(it);
-                            // a small note the client know what channels he have entered but we never delete them when he left them if it cause a problem
-                            //fix it by removing channels_inside or just look for them and delete them xD
-                            kicked = 1;
-                            break ;
-                        }
-                    }
-                    for (size_t j = 0;j < channels[flag].admin_list.size();j++)
-                    {
-                        if (cmds[2] == channels[flag].admin_list[j]){
-                            puts("u find the member and u kicked him again in the admin list");
-                            channels[flag].admin_list[j].erase();
-                            kicked = 1;
-                            break ;
-                        }
-                    }
-                    if (!kicked){
-                        puts("u couldn't find the member u wanna kick");
-                        buffer = ":ircserver 441 " + cmds[2] + " " + channels[flag].channel_name + " They aren't on that channel\r\n";
-                        send(fd, buffer.c_str(), buffer.length(), 0);
+            //can u even kick ?
+            if (!is_admin(channels[flag], client.nickName)){
+                buffer = ":ircserver 482 " + client.nickName + " " + channels[flag].channel_name + " :You're not channel operato\r\n";
+                send(fd, buffer.c_str(), buffer.length(), 0);
+                return 1;
+            }
+            //is this user or admin in the channnel ?
+            if (in_channel(channels[flag], cmds[2])){
+                puts("u find the member and u kicked him");
+                if (cmds.size() <= 3 || cmds[3] == ":")
+                    buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " KICK " + cmds[1] + " " + cmds[2] + " :" + cmds[2] + "\r\n";
+                else
+                    buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " KICK " + cmds[1] + " " + cmds[2] + " :" + cmds[3] + "\r\n";
+                broad_cast(channels[flag], buffer, "", "");
+                channels[flag].members.erase(cmds[2]);
+                kicked = 1;
+            }
+            if (is_admin(channels[flag], cmds[2])){
+                for (size_t j = 0;j < channels[flag].admin_list.size();j++){
+                    if (cmds[2] == channels[flag].admin_list[j]){
+                        puts("u find the member and u kicked him again in the admin list");
+                        channels[flag].admin_list[j].erase();
+                        kicked = 1;
+                        return 0;
                     }
                 }
-                if (i+1 == client.inside_channel.size())
-                {
-                    buffer = ":ircserver 482 " + client.nickName + " " + channels[flag].channel_name + " :You're not channel operato\r\n";
-                    send(fd, buffer.c_str(), buffer.length(), 0);
-                }
+            }
+            if (!kicked){
+                puts("u couldn't find the member u wanna kick");
+                buffer = ":ircserver 441 " + cmds[2] + " " + channels[flag].channel_name + " They aren't on that channel\r\n";
+                send(fd, buffer.c_str(), buffer.length(), 0);
             }
         }
     }
