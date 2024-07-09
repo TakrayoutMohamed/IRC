@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/08 21:13:06 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/09 07:17:28 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -233,7 +233,7 @@ void    join_channel(std::vector<Channels> &channels, p_c &command, int index, C
 //if the user is not invited u check if the channel invite only and if it exceed the limit of channel members
 int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::vector<Channels> &channels)
 {
-    int p = 0;
+    size_t p = 0;
     int flag = -1;
     p_c command = splite_str(cmds);
     std::string buffer;
@@ -279,7 +279,8 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
                         }
                         else{
                             if (channels[flag].is_key){
-                                if (channels[flag].channel_key == command.channels_key[p])
+                                puts("are we about to segfault");
+                                if (command.channels_key.size() >= p + 1 && channels[flag].channel_key == command.channels_key[p])
                                 {
                                     p++;
                                     puts("the user key is correct");
@@ -289,7 +290,7 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
                                 {
                                     p++;
                                     puts("the user key is uncorrect");
-                                    buffer = ":ircserver Error(475): " + channels[flag].channel_name + " :Cannot join channel (+k)\r\n";
+                                    buffer = ":ircserver 475 " + client.nickName + " " + channels[flag].channel_name + " :Cannot join channel, you need the correct key (+k)\r\n";
                                     send(fd, buffer.c_str(), buffer.length(), 0);
                                 }
                             }
@@ -298,22 +299,21 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
                             }
                         }
                     }
+                    std::cout << command.channels_key.size() << std::endl;
                     if (channels[flag].is_key){
-                        puts("channel has a key");
-                        if (channels[flag].is_key){
-                            if (channels[flag].channel_key == command.channels_key[p])
-                            {
-                                p++;
-                                puts("the user key is correct");
-                                join_channel(channels, command, flag, client);
-                            }
-                            else
-                            {
-                                p++;
-                                puts("the user key is uncorrect");
-                                buffer = ":ircserver 475" + channels[flag].channel_name + " :Cannot join channel (+k)\r\n";
-                                send(fd, buffer.c_str(), buffer.length(), 0);
-                            }
+                        puts("are we about to segfault");
+                        if (command.channels_key.size() >= p + 1 && channels[flag].channel_key == command.channels_key[p])
+                        {
+                            p++;
+                            puts("the user key is correct");
+                            join_channel(channels, command, flag, client);
+                        }
+                        else
+                        {
+                            p++;
+                            puts("the user key is uncorrect");
+                            buffer = ":ircserver 475 " + client.nickName + " " + channels[flag].channel_name + " :Cannot join channel, you need the correct key (+k)\r\n";
+                            send(fd, buffer.c_str(), buffer.length(), 0);
                         }
                     }
                 }
@@ -329,11 +329,6 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
 }
 
 int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::vector<Channels> &channels){
-    // for (size_t i = 0;i < cmds.size();i++)
-    // {
-    //     std::cout << cmds[i] << " ";
-    // }
-    // std::cout << std::endl;
     size_t arg = 0;
     char sign = '+';
     std::string error = "i";
