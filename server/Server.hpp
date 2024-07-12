@@ -40,6 +40,7 @@ class Server
 	public:
 		static void	runServer(const std::string &password, const std::string &port);
 		void sendMsg(const std::string &msg, int fd) const;
+		void sendReply(const std::string &numeric, const std::string &parameter, const Client &client) const;
 		/*getter member functions*/
 		const std::string &getPassword(void) const;
 		const int &getPort(void) const;
