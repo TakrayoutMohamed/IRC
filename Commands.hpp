@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:53 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/04 09:01:21 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/12 17:47:30 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <vector>
 #include <map>
 #include <sstream>
+#include <fstream>
 #include <cstring>
 # include <algorithm>
 # include <string>
@@ -44,17 +45,6 @@ typedef struct parsing_command
     std::vector<std::string> channels_name;
     std::vector<std::string> channels_key;
 }   p_c;
-
-// class Client
-// {
-    
-//     public:
-//         std::string nickname;
-//         std::string ip;
-//         int fd;
-//         std::vector<std::pair<std::string, bool> > inside_channel;
-//         Client();
-// };
 
 class Channels
 {

@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/09 17:27:57 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/12 18:17:30 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -871,10 +871,42 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
     }
     else
     {
-        buffer = ":ircserver Error(461): " + cmds[0] + " :Not enough parameters\r\n";
+        buffer = ":ircserver 461 " + mapo[fd].nickName + " " + cmds[0] + " :Not enough parameters\r\n";
         send(fd, buffer.c_str(), buffer.length(), 0);
     }
     return 0;
+}
+
+std::string getRandomLine(const std::vector<std::string>& lines) {
+    int index = rand() % lines.size();
+    return lines[index];
+}
+
+void    HAKIM_COMMAND(int fd){
+    std::string buffer;
+
+    std::ifstream inputFile("info.txt");
+    if (!inputFile) {
+        std::cerr << "Error opening file." << std::endl;
+        return ;
+    }
+
+    std::vector<std::string> lines;
+    std::string line;
+    
+    while (std::getline(inputFile, line)) {
+        lines.push_back(line);
+    }
+
+    inputFile.close();
+
+
+    srand(static_cast<unsigned int>(time(0)));
+
+    std::string randomLine = getRandomLine(lines);
+    buffer = ":Bot el-hakim say: " + randomLine + "\r\n";
+    send(fd, buffer.c_str(), buffer.length(), 0);
+    std::cout << "Random Line: " << randomLine << std::endl;
 }
 
 void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std::vector<Channels> &channels)
@@ -885,7 +917,7 @@ void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std
     std::string cmd = cmds[0];
     std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
     std::string buffer;
-    if (cmds.size() >= 2)
+    if (cmds.size() >= 1)
     {
         if (cmd == "JOIN")
         {
@@ -905,6 +937,9 @@ void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std
         }
         else if (cmd == "PRIVMSG"){
             PRIVMSG_COMMAND(fd, cmds, mapo, channels);
+        }
+        else if (cmd == "HAKIM"){
+            HAKIM_COMMAND(fd);
         }
         else
         {
