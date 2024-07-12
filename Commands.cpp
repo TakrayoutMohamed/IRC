@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/12 18:17:30 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/12 19:00:22 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -384,28 +384,27 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
     int x = 0;
     if (cmds.size() >= 2)
     {
-        for (size_t j = 0; j < channels.size();j++) //try to find the channel
+        for (size_t j = 0; j < channels.size();j++) 
         {
             if (cmds[1] == channels[j].channel_name){
                 flag = j;
                 break ;
             }
         }
-        if (flag != -1) //if true the channel does exist
+        if (flag != -1) 
         {
             if (cmds.size() == 2){
-                //show the channel permissions and the time where the channel was created xD 324 and 329
                 buffer = ":ircserver 324 " + client.nickName + " " + cmds[1] + " " + getChannelModes(channels[flag]) + " \r\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
                 buffer = ":ircserver 329 " + client.nickName + " " + cmds[1] + " " + longlongToString(channels[flag].channel_create_time) + " \r\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
                 return 0;
             }
-            if (cmds.size() >= 3) // if this false it mean its mode with a valid channel name but nothing next so there should be some default output
+            if (cmds.size() >= 3) 
             {
-                for (int i = 0;cmds[2][i];i++){ // iterate on the modes 
-                    while (cmds[2][i] && (cmds[2][i] == '+' || cmds[2][i] == '-')){ // find the sign
-                        sign = cmds[2][i]; // store the sign
+                for (int i = 0;cmds[2][i];i++){ 
+                    while (cmds[2][i] && (cmds[2][i] == '+' || cmds[2][i] == '-')){
+                        sign = cmds[2][i];
                         i++;
                     }
                     if (sign == '+' && cmds[2][i])
@@ -438,8 +437,8 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                 {
                     if (!strncmp(&buffer1[i], "+i", 2)){
                         if (channels[flag].is_invite_only){
-                            buffer = ":channel is already set to invite only: on\r\n";
-                            send(fd, buffer.c_str(), buffer.length(), 0);
+                            // buffer = ":channel is already set to invite only: on\r\n";
+                            // send(fd, buffer.c_str(), buffer.length(), 0);
                         }
                         else if (!channels[flag].is_invite_only){
                             lookfor("-i", changes);
@@ -454,14 +453,14 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                             channels[flag].is_invite_only = false;
                         }
                         else if (!channels[flag].is_invite_only){
-                            buffer = ":channel is already set to invite only: off\r\n";
-                            send(fd, buffer.c_str(), buffer.length(), 0);
+                            // buffer = ":channel is already set to invite only: off\r\n";
+                            // send(fd, buffer.c_str(), buffer.length(), 0);
                         }
                     }
                     else if (!strncmp(&buffer1[i], "+t", 2)){
                         if (channels[flag].is_topic){
-                            buffer = ":channel is already set to topic: on\r\n";
-                            send(fd, buffer.c_str(), buffer.length(), 0);
+                            // buffer = ":channel is already set to topic: on\r\n";
+                            // send(fd, buffer.c_str(), buffer.length(), 0);
                         }
                         else if (!channels[flag].is_topic){
                             lookfor("-t", changes);
@@ -477,8 +476,8 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                             channels[flag].channel_topic = "";
                         }
                         else if (!channels[flag].is_topic){
-                            buffer = ":channel is already set to topic: off\r\n";
-                            send(fd, buffer.c_str(), buffer.length(), 0);
+                            // buffer = ":channel is already set to topic: off\r\n";
+                            // send(fd, buffer.c_str(), buffer.length(), 0);
                         }
                     }
                     else if (!strncmp(&buffer1[i], "+k", 2)){
