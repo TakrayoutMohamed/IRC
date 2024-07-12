@@ -39,7 +39,7 @@ $(NAME): $(OBJ_MAIN) $(OBJ)
 
 
 clean:
-		@$(RM) $(OBJ) $(OBJ_TDD)
+		@$(RM) $(OBJ) $(OBJ_TDD) $(OBJ_MAIN)
 		@echo "all the .o has been deleted successfully"
 fclean: clean
 		@$(RM) $(NAME)
