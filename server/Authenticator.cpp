@@ -53,15 +53,13 @@ int Authenticator::checkPassword(const Server &server, int fd)
 	this->toUpper(pass);
 	if (password.length() == 0)
 	{
-		// server.sendMsg(pass + " : not enough parameters", fd);
-		server.sendReply(this->_client.serverName, "461", this->_client.nickName, "not enough parameters", this->_client.fd);
+		server.sendReply("461", "not enough parameters", this->_client);
 
 		return (false);
 	}
 	if (server.getPassword().compare(password) == 0)
 		return (true);
-	// server.sendMsg(": password incorect", fd);
-	server.sendReply(this->_client.serverName, "464", this->_client.nickName, "password incorect", this->_client.fd);
+	server.sendReply("464", "password incorect", this->_client);
 	return (false);
 }
 
