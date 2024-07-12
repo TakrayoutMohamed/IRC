@@ -126,17 +126,17 @@ int Authenticator::checkNick(Server &server, int fd)
 	}
 	if (hasUnacceptedChars(secondParam))
 	{
-		server.sendMsg(secondParam + " : Erroneus nickname", fd);
+		server.sendReply("432", secondParam + " : Erroneus nickname", this->_client);
 		return (false);
 	}
 	if (secondParam.length() == 0)
 	{
-		server.sendMsg(": no nickname is given", fd);
+		server.sendReply("431", "no nickname given", this->_client);
 		return (false);
 	}
 	if (isNickNameInUse(server.getData(), secondParam))
 	{
-		server.sendMsg(secondParam + " : nickname already in use", fd);
+		server.sendReply("433", secondParam + " : nickname already in use", this->_client);
 		return (false);
 	}
 	this->setNick(secondParam);
@@ -180,7 +180,8 @@ int Authenticator::checkUser(const Server &server, int fd)
 	if (fifthParam.length() == 0)
 	{
 		this->toUpper(firstParam);
-		server.sendMsg(firstParam + " : not enough parameters", fd);
+		// server.sendMsg(firstParam + " : not enough parameters", fd);
+		server.sendReply("461", firstParam + " : not enough parameters", this->_client);
 		return (false);
 	}
 	this->setUser(("~" + secondParam).c_str());
@@ -209,15 +210,15 @@ void Authenticator::welcomeMsg(const Server &server, const Client &client)
 	std::string rplCreated;
 	std::string rplMyInfo;
 
-	rplWelcome = client.ip + " : Welcome to FT_IRC  Network, ";
+	rplWelcome = "Welcome to FT_IRC  Network, ";
 	rplWelcome += client.nickName +"!"+ client.userName + "@" + client.ip;
-	server.sendMsg(rplWelcome, client.fd);
-	rplYourhost = client.ip + " : your host is " + client.serverName + ", runing version 1.1 ";
-	server.sendMsg(rplYourhost, client.fd);
-	rplCreated = client.ip + " : this server was created " + getDateTime(server.getCreateDate());
-	server.sendMsg(rplCreated, client.fd);
-	rplMyInfo = ":Host: " + client.ip + ", Version: 1.1, User mode: none, Channel modes: o, t, k, i, l !";
-	server.sendMsg(rplMyInfo, client.fd);
+	server.sendReply("001", rplWelcome, this->_client);
+	rplYourhost = "your host is " + client.serverName + ", runing version 1.1 ";
+	server.sendReply("002", rplYourhost, this->_client);
+	rplCreated = "This server was created " + getDateTime(server.getCreateDate());
+	server.sendReply("003", rplCreated, this->_client);
+	rplMyInfo = client.ip + " " + client.serverName +", Version: 1.1, User mode: none, Channel modes: o, t, k, i, l !";
+	server.sendReply("004", rplMyInfo, this->_client);
 }
 
 int Authenticator::checkClientAuthentication(Server &server, Client &client, std::string &line)
@@ -232,7 +233,8 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 		line[i] = toupper(static_cast<int>(line[i]));
 	if (line.compare(0, 5, "PASS ", 0, 5) != 0 && !client._isPassSet)
 	{
-		server.sendMsg("YOU NEED TO SET THE SERVER'S PASSWORD FIRST", client.fd);
+		server.sendReply("000", "YOU NEED TO SET THE SERVER'S PASSWORD FIRST", auth._client);
+		// server.sendMsg("YOU NEED TO SET THE SERVER'S PASSWORD FIRST", client.fd);
 		return (false);
 	}
 	if (line.compare(0, 5, "PASS ", 0, 5) == 0)
@@ -256,7 +258,8 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 	}
 	else if (line.length() > 0)
 	{
-		server.sendMsg(": you have not registered", client.fd);
+		// server.sendMsg(": you have not registered", client.fd);
+		server.sendReply("451", "you have not registered", auth._client);
 		printClientData(client);
 	}
 	if (client._isNickSet && client._isPassSet && client._isUserSet)

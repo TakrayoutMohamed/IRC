@@ -260,9 +260,7 @@ int Server::saveClientData(void)
 	if (gethostname(hostname, _SC_HOST_NAME_MAX))
 	{
 		std::string quitMsg = ": QUIT :Client disconnected";
-		// sendMsg("Quit : error while trying to get the hostname", _clientFd);
 		std::cout << ":" << inet_ntoa(_clientAddr.sin_addr) << " QUIT :Client disconnected" << std::endl;
-		sendBroadcastMsgToClients(quitMsg);
 		sendBroadcastMsgToChannels(quitMsg);
 		close(_clientFd);
 		return (1);
@@ -298,21 +296,20 @@ void	Server::applyQuitCommand(int clientIndex)
 	close(client.fd); // close the file descriptor of the client 
 	deleteClient(client.fd);// removes from the map of clients 
 	deleteClientFd(this->_socketsFds.begin() + clientIndex);// removes from the vector of file descriptors
-	sendBroadcastMsgToClients(quitMsg);
 	sendBroadcastMsgToChannels(quitMsg);
 }
 
-void	Server::sendBroadcastMsgToClients(std::string &quitMsg)
-{
-	std::map<int, Client>::const_iterator it;
+// void	Server::sendBroadcastMsgToClients(std::string &quitMsg)
+// {
+// 	std::map<int, Client>::const_iterator it;
 	
-	it = this->getData().begin();
-	while (it != this->getData().end())
-	{
-		this->sendMsg(quitMsg, it->second.fd);
-		it++;
-	}
-}
+// 	it = this->getData().begin();
+// 	while (it != this->getData().end())
+// 	{
+// 		this->sendMsg(quitMsg, it->second.fd);
+// 		it++;
+// 	}
+// }
 
 void	Server::sendBroadcastMsgToChannels(std::string &quitMsg)
 {
@@ -356,7 +353,7 @@ void Server::clientWithEvent(const int clientIndex)
 		return ;
 	if (line.length() > 512)
 	{
-		this->sendMsg(triggeredClient.ip + " :Input line was too long", triggeredClient.fd);
+		this->sendReply("417", "Input line was too long", triggeredClient);
 		return ;
 	}
 	else if (line.length() <= 0)
@@ -413,7 +410,7 @@ void Server::handlMultiLineFeed(Client &client, std::string &line)
 		else
 		{
 			if (isAuthenticationCommand(line))
-				this->sendMsg(":"+ client.serverName +" 462 "+ client.nickName +" :You may not reregister", client.fd);
+				this->sendReply("462", "You may not reregister", client);
 			else
 				this->sendMsg(client.ip + "you have been authenticated successfully", client.fd);
 			//here YOU ARE GOING TO PASS THE LINE TO THE COMMANDS PART 
