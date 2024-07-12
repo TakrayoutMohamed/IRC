@@ -14,6 +14,7 @@ class Authenticator
 		std::string _nick;
 		std::string _user;
 		std::string _realName;
+		Client _client;
 	/****************************Methods*****************************/
 	public:
 		Authenticator(/* args */);
