@@ -77,8 +77,9 @@ class Server
         bool	recieveMsg(const int fd, std::string &line);
 		void	clientWithEvent(const int clientIndex);
 		bool	isAuthenticationCommand(std::string line);
+		bool	isQuitCommand(std::string line) const;
 		std::stringstream &pushLineToStream(const std::string &line);
-		void	handlMultiLineFeed(Client &client, std::string &line);
+		void	handleMultiLineFeed(Client &client, std::string &line, int clientIndex);
 		/// @brief
 		/// @param line the message sended by a client
 		/// @param bufferString the previous message sended by a client and it does not has a new line

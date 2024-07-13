@@ -301,6 +301,7 @@ void	Server::applyQuitCommand(int clientIndex)
 	Client &client = this->getData().find(_socketsFds[clientIndex].fd)->second;
 
 	quitMsg = ":" + nick + " QUIT :Client disconnected";
+	sendReply(client.ip, "QUIT closing connection...", client);
 	close(client.fd); // close the file descriptor of the client 
 	deleteClient(client.fd);// removes from the map of clients 
 	deleteClientFd(this->_socketsFds.begin() + clientIndex);// removes from the vector of file descriptors
@@ -347,6 +348,7 @@ bool Server::recieveMsg(const int fd, std::string &line)
 		return (false);
 	}
 	line = msg;
+	std::cout << "line = {"<< line << "}" << std::endl;
 	return (true);
 }
 
@@ -369,7 +371,7 @@ void Server::clientWithEvent(const int clientIndex)
 		this->clientCloseConnextion(clientIndex);
 		return ;
 	}
-	handlMultiLineFeed(triggeredClient, line);
+	handleMultiLineFeed(triggeredClient, line, clientIndex);
 }
 
 bool Server::isAuthenticationCommand(std::string line)
@@ -391,6 +393,17 @@ bool Server::isAuthenticationCommand(std::string line)
 	return (false);	
 }
 
+bool Server::isQuitCommand(std::string line) const
+{
+	for (int i = 0; i < 4 && line[i] != '\0'; i++)
+		line[i] = toupper(static_cast<int>(line[i]));
+	if (line.compare(0, 5, "QUIT ", 0, 5) == 0)
+		return (true);
+	if (line.compare("QUIT") == 0)
+		return (true);
+	return (false);
+}
+
 std::stringstream	&Server::pushLineToStream(const std::string &line)
 {
 	this->_stringStream.clear();
@@ -399,7 +412,7 @@ std::stringstream	&Server::pushLineToStream(const std::string &line)
 	return (this->_stringStream);
 }
 
-void Server::handlMultiLineFeed(Client &client, std::string &line)
+void Server::handleMultiLineFeed(Client &client, std::string &line, int clientIndex)
 {
 	int countNewLine;
 
@@ -419,8 +432,10 @@ void Server::handlMultiLineFeed(Client &client, std::string &line)
 		{
 			if (isAuthenticationCommand(line))
 				this->sendReply("462", "You may not reregister", client);
+			else if (isQuitCommand(line))
+				clientCloseConnextion(clientIndex);
 			else
-				this->sendMsg(client.ip + "you have been authenticated successfully", client.fd);
+				this->sendReply(client.ip ,"you have been authenticated successfully", client);
 			//here YOU ARE GOING TO PASS THE LINE TO THE COMMANDS PART 
 		}
 	}
