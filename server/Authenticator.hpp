@@ -24,12 +24,12 @@ class Authenticator
         std::stringstream &pushLineToStream(const std::string &line);
 		void		toUpper(std::string &str);
         void 		parsePass(std::string &cmd, std::string &password, std::string &third);
-        int			checkPassword(const Server &obj, int fd);
+        int			checkPassword(const Server &obj);
         void		parseNick(std::string &cmd, std::string &nickName, std::string &third);
-		int			checkNick(Server &obj, int fd);
+		int			checkNick(Server &obj);
         void 		parseUser(std::string &cmd, std::string &user, std::string &hostName, std::string &servName, std::string &realName, std::string &sixthParam);
-		int			checkUser(const Server &obj, int fd);
-		void		welcomeMsg(const Server &server, const Client &client);
+		int			checkUser(const Server &obj);
+		void		welcomeMsg(const Server &server);
         /// @brief 		this member meant to check if the client entered his information as it should (password , user , nick ,realname)
         /// @param obj  an obj of the server
 		/*setters*/

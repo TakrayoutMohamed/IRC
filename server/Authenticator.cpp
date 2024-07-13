@@ -38,18 +38,18 @@ void	Authenticator::parsePass(std::string &cmd, std::string &password, std::stri
 	skipSpaces(this->_stringStream, third);
 }
 
-int Authenticator::checkPassword(const Server &server, int fd)
+int Authenticator::checkPassword(const Server &server)
 {
 	std::string pass;
 	std::string password;
 	std::string thirdParam;
 
 	parsePass(pass, password, thirdParam);
-	if (thirdParam.length() > 0)
-	{
-		server.sendMsg("TOO MANY PARAMS ()", fd);
-		return (false);
-	}
+	// if (thirdParam.length() > 0)
+	// {
+	// 	server.sendMsg("TOO MANY PARAMS ()", fd);
+	// 	return (false);
+	// }
 	this->toUpper(pass);
 	if (password.length() == 0)
 	{
@@ -112,18 +112,18 @@ void	Authenticator::parseNick(std::string &cmd, std::string &nickName, std::stri
 	skipSpaces(this->_stringStream, third);
 }
 
-int Authenticator::checkNick(Server &server, int fd)
+int Authenticator::checkNick(Server &server)
 {
 	std::string firstParam;
 	std::string secondParam;
 	std::string thirdParam;
 
 	parseNick(firstParam, secondParam, thirdParam);
-	if (thirdParam.length() > 0)
-	{
-		server.sendMsg("TOO MANY PARAMS ()", fd);
-		return (false);
-	}
+	// if (thirdParam.length() > 0)
+	// {
+	// 	server.sendMsg("TOO MANY PARAMS ()", fd);
+	// 	return (false);
+	// }
 	if (hasUnacceptedChars(secondParam))
 	{
 		server.sendReply("432", secondParam + " : Erroneus nickname", this->_client);
@@ -162,7 +162,7 @@ void	Authenticator::parseUser(std::string &cmd, std::string &user, std::string &
 	}
 }
 
-int Authenticator::checkUser(const Server &server, int fd)
+int Authenticator::checkUser(const Server &server)
 {
 	std::string firstParam;
 	std::string secondParam;
@@ -172,15 +172,14 @@ int Authenticator::checkUser(const Server &server, int fd)
 	std::string sixthParam;
 
 	parseUser(firstParam, secondParam, thirdParam, fourthParam, fifthParam, sixthParam);
-	if (sixthParam.length() > 0)
-	{
-		server.sendMsg("TOO MANY PARAMS IN USER()", fd);
-		return (false);
-	}
+	// if (sixthParam.length() > 0)
+	// {
+	// 	server.sendMsg("TOO MANY PARAMS IN USER()", fd);
+	// 	return (false);
+	// }
 	if (fifthParam.length() == 0)
 	{
 		this->toUpper(firstParam);
-		// server.sendMsg(firstParam + " : not enough parameters", fd);
 		server.sendReply("461", firstParam + " : not enough parameters", this->_client);
 		return (false);
 	}
@@ -203,7 +202,7 @@ void printClientData(const Client &client)
 	std::cout << "*************************************" << std::endl;
 }
 
-void Authenticator::welcomeMsg(const Server &server, const Client &client)
+void Authenticator::welcomeMsg(const Server &server)
 {
 	std::string rplWelcome;
 	std::string rplYourhost;
@@ -211,13 +210,13 @@ void Authenticator::welcomeMsg(const Server &server, const Client &client)
 	std::string rplMyInfo;
 
 	rplWelcome = "Welcome to FT_IRC  Network, ";
-	rplWelcome += client.nickName +"!"+ client.userName + "@" + client.ip;
+	rplWelcome += this->_client.nickName +"!"+ this->_client.userName + "@" + this->_client.ip;
 	server.sendReply("001", rplWelcome, this->_client);
-	rplYourhost = "your host is " + client.serverName + ", runing version 1.1 ";
+	rplYourhost = "your host is " + this->_client.serverName + ", runing version 1.1 ";
 	server.sendReply("002", rplYourhost, this->_client);
 	rplCreated = "This server was created " + getDateTime(server.getCreateDate());
 	server.sendReply("003", rplCreated, this->_client);
-	rplMyInfo = client.ip + " " + client.serverName +", Version: 1.1, User mode: none, Channel modes: o, t, k, i, l !";
+	rplMyInfo = this->_client.ip + " " + this->_client.serverName +", Version: 1.1, User mode: none, Channel modes: o, t, k, i, l !";
 	server.sendReply("004", rplMyInfo, this->_client);
 }
 
@@ -233,15 +232,14 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 		line[i] = toupper(static_cast<int>(line[i]));
 	if (line.compare(0, 5, "PASS ", 0, 5) != 0 && !client._isPassSet)
 	{
-		server.sendReply("000", "YOU NEED TO SET THE SERVER'S PASSWORD FIRST", auth._client);
-		// server.sendMsg("YOU NEED TO SET THE SERVER'S PASSWORD FIRST", client.fd);
+		server.sendReply("451", "YOU NEED TO SET THE SERVER'S PASSWORD FIRST", auth._client);
 		return (false);
 	}
 	if (line.compare(0, 5, "PASS ", 0, 5) == 0)
-		client._isPassSet = auth.checkPassword(server, client.fd);
+		client._isPassSet = auth.checkPassword(server);
 	else if (line.compare(0, 5, "USER ", 0, 5) == 0)
 	{
-		if (!client._isUserSet && auth.checkUser(server, client.fd))
+		if (!client._isUserSet && auth.checkUser(server))
 		{
 			client._isUserSet = true;
 			client.userName = auth._user;
@@ -250,7 +248,7 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 	}
 	else if (line.compare(0, 5, "NICK ", 0, 5) == 0)
 	{
-		if (!client._isNickSet && auth.checkNick(server, client.fd))
+		if (!client._isNickSet && auth.checkNick(server))
 		{
 			client._isNickSet = true;
 			client.nickName = auth._nick;
@@ -258,14 +256,13 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 	}
 	else if (line.length() > 0)
 	{
-		// server.sendMsg(": you have not registered", client.fd);
 		server.sendReply("451", "you have not registered", auth._client);
 		printClientData(client);
 	}
 	if (client._isNickSet && client._isPassSet && client._isUserSet)
 	{
 		client.isAuthenticated = true;
-		auth.welcomeMsg(server, client);
+		auth.welcomeMsg(server);
 	}
 	return (true);
 }
