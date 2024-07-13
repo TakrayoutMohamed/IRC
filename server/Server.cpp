@@ -56,23 +56,31 @@ void Server::runServer(const std::string &password, const std::string &port)
 		signal(SIGPIPE, SIG_IGN);
 		while (1)
 		{
-			readyFds = serv.checkFdsForNewEvents();
-			if (readyFds == 0)
-				continue ;
-			if (serv._socketsFds[0].revents & POLLIN)
+			try
 			{
-				serv.acceptClientSocket();
-				serv.saveClientData();
-				readyFds--;
-				if (readyFds <= 0)
+				readyFds = serv.checkFdsForNewEvents();
+				if (readyFds == 0)
 					continue ;
+				if (serv._socketsFds[0].revents & POLLIN)
+				{
+					serv.acceptClientSocket();
+					serv.saveClientData();
+					readyFds--;
+					if (readyFds <= 0)
+						continue ;
+				}
+				for (size_t i = 1; i < serv._socketsFds.size(); i++)
+				{
+					if (!(serv._socketsFds[i].revents & (POLLRDNORM)))
+						continue ;
+					serv.clientWithEvent(i);
+				}
 			}
- 			for (size_t i = 1; i < serv._socketsFds.size(); i++)
+			catch (std::exception &e)
 			{
-				if (!(serv._socketsFds[i].revents & (POLLRDNORM)))
-					continue ;
-				serv.clientWithEvent(i);
-			}
+				std::cerr << "Error: " << std::endl;
+				std::cerr << e.what() << std::endl;
+			};
 		}
 	}
 	catch (std::exception &e)
