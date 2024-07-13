@@ -232,7 +232,7 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 		line[i] = toupper(static_cast<int>(line[i]));
 	if (line.compare(0, 5, "PASS ", 0, 5) != 0 && !client._isPassSet)
 	{
-		server.sendReply("451", "YOU NEED TO SET THE SERVER'S PASSWORD FIRST", auth._client);
+		server.sendReply("909", "YOU NEED TO SET THE SERVER'S PASSWORD FIRST", auth._client);
 		return (false);
 	}
 	if (line.compare(0, 5, "PASS ", 0, 5) == 0)
@@ -259,6 +259,7 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 		server.sendReply("451", "you have not registered", auth._client);
 		printClientData(client);
 	}
+	auth._client = client;
 	if (client._isNickSet && client._isPassSet && client._isUserSet)
 	{
 		client.isAuthenticated = true;
