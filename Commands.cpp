@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/14 22:17:57 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/15 10:15:14 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ p_c splite_str(std::vector<std::string> &str)
     command.channels_name = split(str[1], ',');
     if (str.size() > 2)
         command.channels_key = split(str[2], ',');
+    std::cout << "before >>" << str[1] << " after >" << command.channels_name[0] << std::endl;
     return (command);
 }
 
@@ -218,6 +219,7 @@ std::string getChannelModes(Channels &channel){
 }
 
 void    create_join_channel(std::vector<Channels> &channels, p_c &command, int index, Client &client){
+    std::cout << "nickname=" << client.nickName << " channelname=" << command.channels_name[0]<< std::endl;
     Channels channel;
     std::string buffer;
     channel.channel_name = command.channels_name[index];
@@ -237,7 +239,7 @@ void    create_join_channel(std::vector<Channels> &channels, p_c &command, int i
 
 void    join_channel(std::vector<Channels> &channels, p_c &command, int index, Client &client)
 {
-    // puts("join channel only");
+    std::cout << "nickname=" << client.nickName << " channelname=" << channels[index].channel_name << std::endl;
     std::string buffer;
     channels[index].members.insert(std::make_pair(client.nickName, client.fd));
     for (size_t i = 0;i < channels[index].invite_list.size();i++)
@@ -248,31 +250,40 @@ void    join_channel(std::vector<Channels> &channels, p_c &command, int index, C
             break ;
         }
     }
+    //for debuging
+    for (std::map<std::string, int>::iterator it = channels[index].members.begin();it != channels[index].members.end();it++){
+        std::cout << ">>[" << it->first << "]\n";
+    }
     for (std::map<std::string, int>::iterator it = channels[index].members.begin();it != channels[index].members.end();it++)
     {
-        //do what is left
-        buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " JOIN " + command.channels_name[index] + "\r\n";
+        buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " JOIN " + channels[index].channel_name + "\r\n";
         send(it->second, buffer.c_str(), buffer.length(), 0);
-        buffer = ":IRCSERVER 332 " + client.nickName + " " + channels[index].channel_name + " :" + channels[index].channel_topic;
-        send(it->second, buffer.c_str(), buffer.length(), 0);
-        buffer = ":IRCSERVER 333 " + client.nickName + " " + channels[index].channel_name + " :" + myto_string(channels[index].topic_time) + " \r\n";
-        send(it->second, buffer.c_str(), buffer.length(), 0);
-        buffer = ":IRCSERVER 353 " + client.nickName + " @ " + command.channels_name[index] + " :";
+        if (channels[index].topic){
+            buffer = ":IRCSERVER 332 " + client.nickName + " " + channels[index].channel_name + " :" + channels[index].channel_topic;
+            std::cout << buffer << std::endl;
+            send(it->second, buffer.c_str(), buffer.length(), 0);
+            buffer = ":IRCSERVER 333 " + client.nickName + " " + channels[index].channel_name + " :" + myto_string(channels[index].topic_time) + " \r\n";
+            std::cout << buffer << std::endl;
+            send(it->second, buffer.c_str(), buffer.length(), 0);
+        }
+        std::cout << "channel name=["<< command.channels_name[index] << "]" << std::endl;
+        buffer = ":IRCSERVER 353 " + client.nickName + " = " + channels[index].channel_name + " :";
         for (std::map<std::string, int>::iterator ito = channels[index].members.begin(); ito != channels[index].members.end(); ito++)
         {
             buffer += ito->first;
             std::map<std::string, int>::iterator nextIto = ito;
             ++nextIto;
-            if (nextIto != channels[0].members.end()) {
+            if (nextIto != channels[index].members.end()) {
                 buffer += " ";
             }
         }
         buffer += "\r\n";
+        std::cout << "line281" <<  buffer << std::endl;
         send(it->second, buffer.c_str(), buffer.length(), 0);
-        buffer = ":IRCSERVER 366 " + client.nickName + " " + command.channels_name[index] + " :End of /NAMES list.\r\n";
+        buffer = ":IRCSERVER 366 " + client.nickName + " " + channels[index].channel_name + " :End of /NAMES list.\r\n";
+        std::cout << "line285" << buffer << std::endl;
         send(it->second, buffer.c_str(), buffer.length(), 0);
     }
-    // puts("joining process is done");
 }
 
 //if the someone was invited he can join without a key and even if the channel is in the limit
@@ -292,33 +303,34 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
             {
                 flag = check_channel(fd, channels, command.channels_name[i], client);
                 if (flag == -1){ // the channel doesn't exist create it and join it
+                    puts("channel doesn't exist create and join");
                     create_join_channel(channels, command, i, client);
                 }
                 else
                 {
-                    // puts("channel exist");
+                    puts("channel exist");
                     // most important check if u already in the channel
                     if (channels[flag].members.find(client.nickName) != channels[flag].members.end()){
-                        // puts("user already in channel");
+                        puts("user already in channel");
                         continue ; // if we return that's because our user is in the channel and we should do nothing
                     }
                     //check if he in the invite list if yes he need to join the channel immediately
                     if (isHeInvited(channels[flag], client.nickName)){
-                        // puts("user is in invite list so he join");
+                        puts("user is in invite list so he join");
                         join_channel(channels, command, flag, client); // he was invited he should join no matter what
                         continue ;
                     }
                     if (channels[flag].is_invite_only) // check if the channel is invite only
                     {
-                        // puts("channel is invite_only and user is no in invite list");
+                        puts("channel is invite_only and user is no in invite list");
                         buffer = ":ircserver 473 " + client.nickName + " " + channels[flag].channel_name + " :Cannot join channel, you must be invited (+i)\r\n";
                         send(fd, buffer.c_str(), buffer.length(), 0);
                         continue ;
                     }
                     if (channels[flag].is_limit){
-                        // puts("channel has a limit");
+                        puts("channel has a limit");
                         if (channels[flag].members_limit >= channels[flag].members.size()){
-                            // puts("max limit");
+                            puts("max limit");
                             buffer = ":ircserver 471 " + client.nickName + " " + channels[flag].channel_name + " :Cannot join channel (+l)\r\n";
                             send(fd, buffer.c_str(), buffer.length(), 0);
                             continue ;
@@ -329,13 +341,13 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
                                 if (command.channels_key.size() >= p + 1 && channels[flag].channel_key == command.channels_key[p])
                                 {
                                     p++;
-                                    // puts("the user key is correct");
+                                    puts("the user key is correct");
                                     join_channel(channels, command, flag, client);
                                 }
                                 else
                                 {
                                     p++;
-                                    // puts("the user key is uncorrect");
+                                    puts("the user key is uncorrect");
                                     buffer = ":ircserver 475 " + client.nickName + " " + channels[flag].channel_name + " :Cannot join channel, you need the correct key (+k)\r\n";
                                     send(fd, buffer.c_str(), buffer.length(), 0);
                                 }
@@ -346,22 +358,22 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
                         }
                     }
                     if (channels[flag].is_key){
-                        // puts("are we about to segfault");
+                        puts("u need a key");
                         if (command.channels_key.size() >= p + 1 && channels[flag].channel_key == command.channels_key[p])
                         {
                             p++;
-                            // puts("the user key is correct");
+                            puts("the user key is correct");
                             join_channel(channels, command, flag, client);
                         }
                         else
                         {
                             p++;
-                            // puts("the user key is uncorrect");
+                            puts("the user key is uncorrect");
                             buffer = ":ircserver 475 " + client.nickName + " " + channels[flag].channel_name + " :Cannot join channel, you need the correct key (+k)\r\n";
                             send(fd, buffer.c_str(), buffer.length(), 0);
                         }
                     }
-                    // puts("there is no restriction on joining the channel");
+                    puts("there is no restriction on joining the channel");
                     join_channel(channels, command, flag, client);
                 }
             }
@@ -745,7 +757,7 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
                 if (channels[flag].topic){
                     buffer = ":ircserver 332 " + client.nickName + " " + channels[flag].channel_name + " :" + channels[flag].channel_topic;
                     send(fd, buffer.c_str(), buffer.length(), 0);
-                    buffer = ":ircserver 333 " + client.nickName + " " + channels[flag].channel_name + " :" + myto_string(channels[flag].topic_time) + " \r\n";
+                    buffer = ":ircserver 333 " + client.nickName + " " + channels[flag].channel_name + " " + channels[flag].who_set_topic + " " + myto_string(channels[flag].topic_time) + " \r\n";
                     send(fd, buffer.c_str(), buffer.length(), 0);
                 }
                 else{
@@ -911,6 +923,7 @@ void    HAKIM_COMMAND(int fd){
 
 void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std::vector<Channels> &channels)
 {
+    std::cout << "orignalstr: " << str << std::endl;
     std::vector<std::string> cmds;
     cmds = split(str, ' ');
     std::string cmd = cmds[0];
