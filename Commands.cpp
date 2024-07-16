@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/15 10:15:14 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/16 21:39:58 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ void    remove_admin(Channels &channel, std::string &name){
 
 bool    is_admin(Channels &channel, std::string &name){
     for (size_t i = 0;i < channel.admin_list.size();i++){
-        if (channel.admin_list[i] ==  name)
+        if (channel.admin_list[i] == name)
             return (true);
     }
     return (false);
@@ -119,6 +119,19 @@ int get_fd(std::map<int ,Client> &map, std::string &nickname){
         }
     }
     return (-1);
+}
+
+int doesChannelExist(std::vector<Channels> &channels, std::string &channel_name){
+    int flag = -1;
+    for (size_t i = 0;i < channels.size();i++)
+    {
+        if (channel_name == channels[i].channel_name)
+        {
+            flag = i;
+            break ;
+        }
+    }
+    return (flag);
 }
 
 int check_channel(int fd, std::vector<Channels> &channels, std::string &channel_name, Client &client){
@@ -219,7 +232,7 @@ std::string getChannelModes(Channels &channel){
 }
 
 void    create_join_channel(std::vector<Channels> &channels, p_c &command, int index, Client &client){
-    std::cout << "nickname=" << client.nickName << " channelname=" << command.channels_name[0]<< std::endl;
+    // std::cout << "nickname=" << client.nickName << " channelname=" << command.channels_name[0]<< std::endl;
     Channels channel;
     std::string buffer;
     channel.channel_name = command.channels_name[index];
@@ -249,10 +262,6 @@ void    join_channel(std::vector<Channels> &channels, p_c &command, int index, C
             channels[index].invite_list[i].erase();
             break ;
         }
-    }
-    //for debuging
-    for (std::map<std::string, int>::iterator it = channels[index].members.begin();it != channels[index].members.end();it++){
-        std::cout << ">>[" << it->first << "]\n";
     }
     for (std::map<std::string, int>::iterator it = channels[index].members.begin();it != channels[index].members.end();it++)
     {
@@ -301,7 +310,7 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
             flag = -1;
             if (command.channels_name[i][0] == '#' && command.channels_name[i].size() > 1 && !strchr(" \a\0\n\r,", command.channels_name[i][1])) // check if this channel is valid first
             {
-                flag = check_channel(fd, channels, command.channels_name[i], client);
+                flag = doesChannelExist(channels, command.channels_name[i]);
                 if (flag == -1){ // the channel doesn't exist create it and join it
                     puts("channel doesn't exist create and join");
                     create_join_channel(channels, command, i, client);
@@ -310,7 +319,7 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
                 {
                     puts("channel exist");
                     // most important check if u already in the channel
-                    if (channels[flag].members.find(client.nickName) != channels[flag].members.end()){
+                    if (in_channel(channels[flag], client.nickName)){
                         puts("user already in channel");
                         continue ; // if we return that's because our user is in the channel and we should do nothing
                     }
@@ -413,15 +422,25 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
         }
         if (flag != -1) 
         {
-            if (cmds.size() == 2){
-                buffer = ":ircserver 324 " + client.nickName + " " + cmds[1] + " " + getChannelModes(channels[flag]) + " \r\n";
+            if (!in_channel(channels[flag], client.nickName)){
+                buffer = ":ircserver 442 " + client.nickName + " " + cmds[1] + " :You're not on that channel\r\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
-                buffer = ":ircserver 329 " + client.nickName + " " + cmds[1] + " " + longlongToString(channels[flag].channel_create_time) + " \r\n";
+                return 0;
+            }
+            if (cmds.size() == 2){
+                buffer = ":ircserver 324 " + client.nickName + " " + cmds[1] + " " + getChannelModes(channels[flag]) + "\r\n";
+                send(fd, buffer.c_str(), buffer.length(), 0);
+                buffer = ":ircserver 329 " + client.nickName + " " + cmds[1] + " " + longlongToString(channels[flag].channel_create_time) + "\r\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
                 return 0;
             }
             if (cmds.size() >= 3) 
             {
+                if (!is_admin(channels[flag], client.nickName)){
+                    buffer = ":ircserver 482 " + client.nickName + " " + cmds[1] + " :You're not channel operator\r\n";
+                    send(fd, buffer.c_str(), buffer.length(), 0);
+                    return 0;
+                }
                 for (int i = 0;cmds[2][i];i++){ 
                     while (cmds[2][i] && (cmds[2][i] == '+' || cmds[2][i] == '-')){
                         sign = cmds[2][i];
@@ -753,6 +772,11 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
         if (check_channel(fd, channels, cmds[1], client) >= 0)
         {
             flag = check_channel(fd, channels, cmds[1], client);
+            if (!in_channel(channels[flag], client.nickName)){//need to fix the respond
+                buffer = ":ircserver 442 " + client.nickName + " " + channels[flag].channel_name + " ::You're not on that channel\r\n";
+                send(fd, buffer.c_str(), buffer.length(), 0);
+                return 0;
+            }
             if (cmds.size() == 2){ //show the topic
                 if (channels[flag].topic){
                     buffer = ":ircserver 332 " + client.nickName + " " + channels[flag].channel_name + " :" + channels[flag].channel_topic;
