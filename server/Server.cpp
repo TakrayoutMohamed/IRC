@@ -49,7 +49,7 @@ void Server::runServer(const std::string &password, const std::string &port)
 	{
 		int	readyFds;
 		Server serv(password, port);
-		std::cout << "_password : " << serv.getPassword() << " _port = " << serv.getPort() << std::endl;
+		std::cout << "---------Server is Running successfully---------" << std::endl;
 		serv.openSocket();
 		serv.bindSocket();
 		serv.listenSocket();
@@ -308,18 +308,6 @@ void	Server::applyQuitCommand(int clientIndex)
 	sendBroadcastMsgToChannels(quitMsg);
 }
 
-// void	Server::sendBroadcastMsgToClients(std::string &quitMsg)
-// {
-// 	std::map<int, Client>::const_iterator it;
-	
-// 	it = this->getData().begin();
-// 	while (it != this->getData().end())
-// 	{
-// 		this->sendMsg(quitMsg, it->second.fd);
-// 		it++;
-// 	}
-// }
-
 void	Server::sendBroadcastMsgToChannels(std::string &quitMsg)
 {
 	(void) quitMsg;
@@ -348,7 +336,6 @@ bool Server::recieveMsg(const int fd, std::string &line)
 		return (false);
 	}
 	line = msg;
-	std::cout << "line = {"<< line << "}" << std::endl;
 	return (true);
 }
 

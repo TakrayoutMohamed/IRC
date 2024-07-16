@@ -45,11 +45,6 @@ int Authenticator::checkPassword(const Server &server)
 	std::string thirdParam;
 
 	parsePass(pass, password, thirdParam);
-	// if (thirdParam.length() > 0)
-	// {
-	// 	server.sendMsg("TOO MANY PARAMS ()", fd);
-	// 	return (false);
-	// }
 	this->toUpper(pass);
 	if (password.length() == 0)
 	{
@@ -119,11 +114,6 @@ int Authenticator::checkNick(Server &server)
 	std::string thirdParam;
 
 	parseNick(firstParam, secondParam, thirdParam);
-	// if (thirdParam.length() > 0)
-	// {
-	// 	server.sendMsg("TOO MANY PARAMS ()", fd);
-	// 	return (false);
-	// }
 	if (hasUnacceptedChars(secondParam))
 	{
 		server.sendReply("432", secondParam + " : Erroneus nickname", this->_client);
@@ -172,11 +162,6 @@ int Authenticator::checkUser(const Server &server)
 	std::string sixthParam;
 
 	parseUser(firstParam, secondParam, thirdParam, fourthParam, fifthParam, sixthParam);
-	// if (sixthParam.length() > 0)
-	// {
-	// 	server.sendMsg("TOO MANY PARAMS IN USER()", fd);
-	// 	return (false);
-	// }
 	if (fifthParam.length() == 0)
 	{
 		this->toUpper(firstParam);
@@ -186,20 +171,6 @@ int Authenticator::checkUser(const Server &server)
 	this->setUser(("~" + secondParam).c_str());
 	this->setRealName(fifthParam);
     return (true);
-}
-
-void printClientData(const Client &client)
-{
-	std::cout << "*************************************" << std::endl;
-	std::cout << "isAuthenticated = {"<< client.isAuthenticated <<"}" << std::endl;
-	std::cout << "nickName = {"<< client.nickName <<"}" << std::endl;
-	std::cout << "userName = {"<< client.userName <<"}" << std::endl;
-	std::cout << "realName = {"<< client.realName <<"}" << std::endl;
-	std::cout << "hostName = {"<< client.hostName <<"}" << std::endl;
-	std::cout << "serverName = {"<< client.serverName <<"}" << std::endl;
-	std::cout << "ip = {"<< client.ip <<"}" << std::endl;
-	std::cout << "fd = {"<< client.fd <<"}" << std::endl;
-	std::cout << "*************************************" << std::endl;
 }
 
 void Authenticator::welcomeMsg(const Server &server)
@@ -257,7 +228,6 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 	else if (line.length() > 0)
 	{
 		server.sendReply("451", "you have not registered", auth._client);
-		printClientData(client);
 	}
 	auth._client = client;
 	if (client._isNickSet && client._isPassSet && client._isUserSet)
