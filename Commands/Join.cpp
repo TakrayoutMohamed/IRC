@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:34:34 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/17 09:10:48 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/17 16:14:59 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
                         continue ;
                     }
                     if (channels[flag].is_limit){
-                        if (channels[flag].members_limit >= channels[flag].members.size()){
+                        if (channels[flag].members_limit <= channels[flag].members.size()){
                             buffer = ":ircserver 471 " + client.nickName + " " + channels[flag].channel_name + " :Cannot join channel (+l)\r\n";
                             send(fd, buffer.c_str(), buffer.length(), 0);
                             continue ;
