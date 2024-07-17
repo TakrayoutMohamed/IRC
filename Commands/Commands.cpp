@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/17 16:01:26 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/17 16:05:44 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -232,7 +232,7 @@ std::string getChannelModes(Channels &channel){
 void    create_join_channel(std::vector<Channels> &channels, p_c &command, int index, Client &client){
     Channels channel;
     std::string buffer;
-    channels[index].members_limit++;
+    channel.members_limit = 1;
     channel.channel_name = command.channels_name[index];
     channel.channel_create_time = time(0);
     channel.members.insert(std::make_pair("@" + client.nickName, client.fd));
