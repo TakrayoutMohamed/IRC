@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:53 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/17 08:45:47 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/17 16:44:19 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,3 +100,4 @@ void    lookfor(std::string look, std::vector<std::pair<std::string, std::string
 p_c splite_str(std::vector<std::string> &str);
 std::vector<std::string> split(std::string &str, char sep);
 std::string myto_string(long long value);
+std::vector<std::string> spliteCommand(std::string &str);

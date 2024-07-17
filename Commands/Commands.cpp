@@ -6,11 +6,29 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/17 16:05:44 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/17 16:44:34 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Commands.hpp"
+
+std::vector<std::string> spliteCommand(std::string &str){
+    std::vector<std::string> names;
+    std::stringstream ss(str);
+    std::string name = "";
+    size_t i = 0;
+    while (str[i]) {
+        while (str[i] && (str[i] == ' ' || str[i] == '\t'))
+            i++;
+        while (str[i] && (str[i] != ' ' && str[i] != '\t')){
+            name += str[i];
+            i++;
+        }
+        names.push_back(name);
+        name.clear();
+    }
+    return (names);
+}
 
 std::string myto_string(long long value){
     std::stringstream oss;
@@ -291,7 +309,7 @@ void    join_channel(std::vector<Channels> &channels, int index, Client &client)
 void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std::vector<Channels> &channels)
 {
     std::vector<std::string> cmds;
-    cmds = split(str, ' ');
+    cmds = spliteCommand(str);
     std::string cmd = cmds[0];
     std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
     std::string buffer;
