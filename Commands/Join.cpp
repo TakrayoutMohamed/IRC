@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:34:34 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/17 16:14:59 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/17 18:39:03 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,20 +63,20 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
                             }
                         }
                     }
-                    if (channels[flag].is_key){
-                        if (command.channels_key.size() >= p + 1 && channels[flag].channel_key == command.channels_key[p])
-                        {
+                    else if (channels[flag].is_key){
+                        if (command.channels_key.size() >= (p + 1) && channels[flag].channel_key == command.channels_key[p]){
                             p++;
                             join_channel(channels, flag, client);
                         }
-                        else
-                        {
+                        else{
                             p++;
                             buffer = ":ircserver 475 " + client.nickName + " " + channels[flag].channel_name + " :Cannot join channel, you need the correct key (+k)\r\n";
                             send(fd, buffer.c_str(), buffer.length(), 0);
                         }
                     }
-                    join_channel(channels, flag, client);
+                    else{
+                        join_channel(channels, flag, client);
+                    }
                 }
             }
             else{
