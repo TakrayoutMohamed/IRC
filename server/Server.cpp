@@ -103,7 +103,7 @@ void Server::sendMsg(const std::string &msg, int fd) const
 
 void Server::sendReply(const std::string &numeric, const std::string &parameter, const Client &client) const
 {
-	std::string reply = ":" + client.serverName + " " + numeric + " \"" + client.nickName + "\" :" + parameter;
+	std::string reply = ":" + client.serverName + " " + numeric + " " + client.nickName + " :" + parameter;
 	this->sendMsg(reply, client.fd);
 }
 
