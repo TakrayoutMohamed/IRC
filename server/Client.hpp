@@ -9,7 +9,7 @@ class Client
     private:
         /* data */
     public:
-        std::vector<std::pair<std::string, bool> > inside_channel;
+        std::vector<std::string> inside_channel;
         bool        isAuthenticated;
         bool		_isPassSet;
 		bool		_isNickSet;
