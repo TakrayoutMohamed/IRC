@@ -8,7 +8,7 @@ Client::Client(/* args */)
 	_isNickSet = false;
 	_isUserSet = false;
 	bufferString = "";
-	nickName = "";
+	nickName = "-";
 	userName = "";
 	realName = "";
 	hostName = "";
