@@ -330,7 +330,7 @@ bool Server::recieveMsg(const int fd, std::string &line)
 	char		msg[1024];
 
 	bzero(msg, 1024);
-	if (recv(fd, msg, 1024, 0) == -1)
+	if (recv(fd, msg, 1024, MSG_DONTWAIT) == -1 && (errno != EAGAIN && errno != EWOULDBLOCK))
 	{
 		std::cerr << "Error : thier is an error while recieving a message" << std::endl;
 		return (false);
