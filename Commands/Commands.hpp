@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:53 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/17 16:44:19 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/18 10:33:47 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ class Channels
         std::vector<std::string>    invite_list;
         bool                        is_limit;               //limit
         size_t                      members_limit;
+        size_t                      members_count;
         bool                        is_topic;               //topic
         std::string                 channel_topic;
         bool                        topic;

@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:32:54 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/17 12:16:08 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/18 10:17:54 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
         {
             flag = check_channel(fd, channels, cmds[1], client);
             if (!in_channel(channels[flag], client.nickName)){//need to fix the respond
-                buffer = ":ircserver 442 " + client.nickName + " " + channels[flag].channel_name + " ::You're not on that channel\r\n";
+                buffer = ":ircserver 442 " + client.nickName + " " + channels[flag].channel_name + " :You're not on that channel\r\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
                 return 0;
             }
@@ -41,11 +41,15 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
             if (channels[flag].is_topic){// only mod can set it
                 if (is_admin(channels[flag], client.nickName)){
                     if(cmds.size() >= 3){
-                        for (size_t i = 2;i < cmds.size();i++){
-                            topic += cmds[i];
-                            if (i+1 < cmds.size())
-                                topic += " ";
+                        if (cmds.size() >= 3 && cmds[2][0] == ':'){
+                            for (size_t i = 2;i < cmds.size();i++){
+                                topic += cmds[i];
+                                if (i+1 < cmds.size())
+                                    topic += " ";
+                            }
                         }
+                        else
+                            topic = cmds[2];
                         channels[flag].who_set_topic = client.nickName;
                         channels[flag].topic_time = time(0);
                         channels[flag].channel_topic = topic;
@@ -61,16 +65,19 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
             }
             else{ //anyone can set the topic
                 if(cmds.size() >= 3){
-                    for (size_t i = 2;i < cmds.size();i++){
-                        topic += cmds[i];
-                        if (i+1 < cmds.size())
-                            topic += " ";
+                    if (cmds.size() >= 3 && cmds[2][0] == ':'){
+                        for (size_t i = 2;i < cmds.size();i++){
+                            topic += cmds[i];
+                            if (i+1 < cmds.size())
+                                topic += " ";
+                        }
                     }
-                    topic += "\r\n";
+                    else
+                        topic = cmds[2];
                     channels[flag].who_set_topic = client.nickName;
                     channels[flag].topic_time = time(0);
                     channels[flag].channel_topic = topic;
-                    buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " TOPIC " + channels[flag].channel_name + " :" + topic;
+                    buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " TOPIC " + channels[flag].channel_name + " :" + topic + "\r\n";
                     broad_cast(channels[flag], buffer, "", "");
                     channels[flag].topic = true;
                 }

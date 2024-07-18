@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:34:34 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/17 18:39:03 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/18 11:56:42 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
                 flag = doesChannelExist(channels, command.channels_name[i]);
                 if (flag == -1) // the channel doesn't exist create it and join it
                     create_join_channel(channels, command, i, client);
-                else{
+                else {
                     if (in_channel(channels[flag], client.nickName)) // most important check if u already in the channel
                         continue ; // if we return that's because our user is in the channel and we should do nothing
                     if (isHeInvited(channels[flag], client.nickName)){//check if he in the invite list if yes he need to join the channel immediately

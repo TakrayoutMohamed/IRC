@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/17 16:44:34 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/18 12:25:28 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,14 +16,8 @@ std::vector<std::string> spliteCommand(std::string &str){
     std::vector<std::string> names;
     std::stringstream ss(str);
     std::string name = "";
-    size_t i = 0;
-    while (str[i]) {
-        while (str[i] && (str[i] == ' ' || str[i] == '\t'))
-            i++;
-        while (str[i] && (str[i] != ' ' && str[i] != '\t')){
-            name += str[i];
-            i++;
-        }
+    
+    while (ss >> name) {
         names.push_back(name);
         name.clear();
     }
@@ -47,6 +41,7 @@ Channels::Channels()
     is_topic = false;
     topic = false;
     members_limit = 0;
+    members_count = 0;
     topic_time = 0;
 }
 
@@ -66,7 +61,10 @@ p_c splite_str(std::vector<std::string> &str)
     p_c command;
 
     command.command = str[0];
-    command.channels_name = split(str[1], ',');
+    if (str.size() > 1){
+        std::cout << "REEEEEEEE9" << std::endl;
+        command.channels_name = split(str[1], ',');
+    }
     if (str.size() > 2)
         command.channels_key = split(str[2], ',');
     return (command);
@@ -250,13 +248,13 @@ std::string getChannelModes(Channels &channel){
 void    create_join_channel(std::vector<Channels> &channels, p_c &command, int index, Client &client){
     Channels channel;
     std::string buffer;
-    channel.members_limit = 1;
+    channel.members_count = 1;
     channel.channel_name = command.channels_name[index];
     channel.channel_create_time = time(0);
     channel.members.insert(std::make_pair("@" + client.nickName, client.fd));
     channel.admin_list.push_back(client.nickName);
     channel.channel_topic = "No topic is set.";
-    client.inside_channel.push_back(std::make_pair(command.channels_name[index], true));
+    client.inside_channel.push_back(command.channels_name[index]);
     channels.push_back(channel);
     buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " JOIN " + command.channels_name[index] + "\r\n";
     send(client.fd, buffer.c_str(), buffer.length(), 0);
@@ -268,9 +266,10 @@ void    create_join_channel(std::vector<Channels> &channels, p_c &command, int i
 
 void    join_channel(std::vector<Channels> &channels, int index, Client &client)
 {
-    channels[index].members_limit++;
+    channels[index].members_count++;
     std::string buffer;
     channels[index].members.insert(std::make_pair(client.nickName, client.fd));
+    client.inside_channel.push_back(channels[index].channel_name);
     for (size_t i = 0;i < channels[index].invite_list.size();i++)
     {
         if (channels[index].invite_list[i] == client.nickName)
@@ -308,6 +307,7 @@ void    join_channel(std::vector<Channels> &channels, int index, Client &client)
 
 void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std::vector<Channels> &channels)
 {
+    // std::cout << "its my mistake" << std::endl;
     std::vector<std::string> cmds;
     cmds = spliteCommand(str);
     std::string cmd = cmds[0];
@@ -343,4 +343,5 @@ void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std
             send(fd, buffer.c_str(), buffer.length(), 0);
         }
     }
+    // std::cout << "its n;'t mistake" << std::endl;
 }

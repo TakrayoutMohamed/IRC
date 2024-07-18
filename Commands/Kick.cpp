@@ -6,12 +6,13 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:31:50 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/17 09:56:01 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/18 11:10:31 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Commands.hpp"
 
+//need to remove the channel name from the channels he is inside
 int KICK_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::vector<Channels> &channels)
 {
     int kicked = 0;
@@ -58,7 +59,15 @@ int KICK_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::ve
                     if (cmds[2] == channels[flag].admin_list[j]){
                         channels[flag].admin_list[j].erase();
                         kicked = 1;
-                        return 0;
+                        break ;
+                    }
+                }
+            }
+            if (kicked){
+                for (std::vector<std::string>::iterator it = client.inside_channel.begin();it != client.inside_channel.end();it++){
+                    if (*it == channels[flag].channel_name){
+                        client.inside_channel.erase(it);
+                        break ;
                     }
                 }
             }
