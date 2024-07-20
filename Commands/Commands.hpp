@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:53 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/18 10:33:47 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/20 19:31:13 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,7 @@ bool    in_channel(Channels &channel, std::string &name);
 bool already_op(Channels &channel, std::string &name);
 void    lookfor(std::string look, std::vector<std::pair<std::string, std::string> > &changes);
 p_c splite_str(std::vector<std::string> &str);
+p_c splite_message(std::vector<std::string> &str);
 std::vector<std::string> split(std::string &str, char sep);
 std::string myto_string(long long value);
 std::vector<std::string> spliteCommand(std::string &str);

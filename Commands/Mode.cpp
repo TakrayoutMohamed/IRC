@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:30:58 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/17 12:39:19 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/20 21:11:41 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,7 +189,7 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                             }
                         }
                         else{
-                            buffer = ":ircserver 401 " + client.nickName + " " + cmds[key] + " :No such nick\r\n";
+                            buffer = ":ircserver 401 " + client.nickName + " " + cmds[key] + " :No such nick/channel\r\n";
                             key++;
                             send(fd, buffer.c_str(), buffer.length(), 0);
                         }
@@ -206,7 +206,7 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                             }
                         }
                         else{
-                            buffer = ":ircserver 401 " + client.nickName + " " + cmds[key] + " :No such nick\r\n";
+                            buffer = ":ircserver 401 " + client.nickName + " " + cmds[key] + " :No such nick/channel\r\n";
                             key++;
                             send(fd, buffer.c_str(), buffer.length(), 0);
                         }
@@ -225,7 +225,7 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                     if (i+1 < changes.size())
                         buffer1 += " ";
                 }
-                buffer = ":" + client.nickName + "!" + client.userName + client.ip + " MODE " + channels[flag].channel_name + " " + buffer1 + "\r\n";
+                buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " MODE " + channels[flag].channel_name + " " + buffer1 + "\r\n";
                 if (!changes.empty())
                     broad_cast(channels[flag], buffer, "", "");
             }

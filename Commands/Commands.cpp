@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/18 12:25:28 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/20 21:10:44 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ std::string myto_string(long long value){
 Channels::Channels()
 {
     channel_name = "";
-    channel_topic = "No topic is set.\n";
+    channel_topic = "No topic is set.";
     channel_key = "";
     is_invite_only = false;
     is_limit = false;
@@ -62,11 +62,53 @@ p_c splite_str(std::vector<std::string> &str)
 
     command.command = str[0];
     if (str.size() > 1){
-        std::cout << "REEEEEEEE9" << std::endl;
         command.channels_name = split(str[1], ',');
     }
     if (str.size() > 2)
         command.channels_key = split(str[2], ',');
+    return (command);
+}
+
+std::string removeComma(std::string &str){
+    std::string tmp = "";
+    for (size_t i = 0; i < str.length();i++){
+        if (i != 0)
+            tmp += str[i];
+    }
+    return tmp;
+}
+
+p_c splite_message(std::vector<std::string> &str){
+    p_c command;
+    std::string buffer;
+
+    command.command = str[0];
+    if (str.size() > 1){
+        command.channels_name = split(str[1], ',');
+    }
+    if (str.size() > 2){
+        if (str[2][0] != ':'){
+            command.channels_key.push_back(str[2]);
+        }
+        else
+        {
+            for (size_t i = 2; i < str.size();i++){
+                if (i == 2 && str[i][0] == ':')
+                {
+                    buffer += removeComma(str[2]);
+                }
+                else if (i == 2 && str[i] == ":" && str.size() >= 4){
+                    buffer += str[++i];
+                }
+                else{
+                    buffer += str[i];
+                }
+                if (i+1 < str.size())
+                    buffer += " ";
+            }
+            command.channels_key.push_back(buffer);
+        }
+    }
     return (command);
 }
 
@@ -258,7 +300,7 @@ void    create_join_channel(std::vector<Channels> &channels, p_c &command, int i
     channels.push_back(channel);
     buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " JOIN " + command.channels_name[index] + "\r\n";
     send(client.fd, buffer.c_str(), buffer.length(), 0);
-    buffer = ":ircserver 353 " + client.nickName + " @ " + command.channels_name[index] + " :@" + client.nickName + "\r\n";
+    buffer = ":ircserver 353 " + client.nickName + " = " + command.channels_name[index] + " :@" + client.nickName + "\r\n";
     send(client.fd, buffer.c_str(), buffer.length(), 0);
     buffer = ":ircserver 366 " + client.nickName + " " + command.channels_name[index] + " :End of /NAMES list.\r\n";
     send(client.fd, buffer.c_str(), buffer.length(), 0);
@@ -339,7 +381,8 @@ void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std
         }
         else
         {
-            buffer = ":ircserver 421 " + cmds[0] + " Unknown command\r\n";
+            //:tngnet.nl.quakenet.org 421 reda1 sdhdfh :Unknown command
+            buffer = ":ircserver 421 " + mapo[fd].nickName + " " + cmds[0] + " :Unknown command\r\n";
             send(fd, buffer.c_str(), buffer.length(), 0);
         }
     }

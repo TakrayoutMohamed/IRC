@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:32:15 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/17 12:32:08 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/20 21:11:30 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ int INVITE_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client>
             }
         }
         else{
-            buffer = ":ircserver 401 " + mapo[fd].nickName  + " " + cmds[2] + " :No such nick\r\n";
+            buffer = ":ircserver 401 " + mapo[fd].nickName  + " " + cmds[2] + " :No such nick/channel\r\n";
             send(fd, buffer.c_str(), buffer.length(), 0);
         }
     }

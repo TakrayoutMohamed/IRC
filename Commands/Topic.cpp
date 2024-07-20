@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:32:54 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/18 10:17:54 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/20 18:18:54 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,14 +21,14 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
         if (check_channel(fd, channels, cmds[1], client) >= 0)
         {
             flag = check_channel(fd, channels, cmds[1], client);
-            if (!in_channel(channels[flag], client.nickName)){//need to fix the respond
+            if (!in_channel(channels[flag], client.nickName)){
                 buffer = ":ircserver 442 " + client.nickName + " " + channels[flag].channel_name + " :You're not on that channel\r\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
                 return 0;
             }
             if (cmds.size() == 2){ //show the topic
                 if (channels[flag].topic){
-                    buffer = ":ircserver 332 " + client.nickName + " " + channels[flag].channel_name + " :" + channels[flag].channel_topic;
+                    buffer = ":ircserver 332 " + client.nickName + " " + channels[flag].channel_name + " :" + channels[flag].channel_topic + " \r\n";
                     send(fd, buffer.c_str(), buffer.length(), 0);
                     buffer = ":ircserver 333 " + client.nickName + " " + channels[flag].channel_name + " " + channels[flag].who_set_topic + " " + myto_string(channels[flag].topic_time) + " \r\n";
                     send(fd, buffer.c_str(), buffer.length(), 0);
@@ -37,6 +37,7 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
                     buffer = ":ircserver 331 " + client.nickName + " " + channels[flag].channel_name + " :" + channels[flag].channel_topic + "\r\n";
                     send(fd, buffer.c_str(), buffer.length(), 0);
                 }
+                return 0;
             }
             if (channels[flag].is_topic){// only mod can set it
                 if (is_admin(channels[flag], client.nickName)){
