@@ -135,21 +135,37 @@ int Authenticator::checkNick(Server &server)
 
 void	Authenticator::parseUser(std::string &cmd, std::string &user, std::string &hostName, std::string &servName, std::string &realName, std::string &sixthParam)
 {
-	std::getline(this->_stringStream, cmd, ':');
-	std::getline(this->_stringStream, realName, ':');
-	std::getline(this->_stringStream, sixthParam, ':');
-	this->pushLineToStream(cmd);
-	cmd.clear();
-	cmd = "";
 	std::getline(this->_stringStream, cmd, ' ');
 	skipSpaces(this->_stringStream, user);
 	skipSpaces(this->_stringStream, hostName);
 	skipSpaces(this->_stringStream, servName);
-	if (realName.length() == 0)
+	std::getline(this->_stringStream, realName, '\0');
+	this->pushLineToStream(realName);
+	if (realName.find(':') != std::string::npos && (realName.find(':') == 0 || isspace(realName[realName.find(':') - 1])))
+	{
+		std::getline(this->_stringStream, realName, ':');
+		std::getline(this->_stringStream, realName, '\0');
+		std::getline(this->_stringStream, sixthParam, ':');
+	}
+	else
 	{
 		skipSpaces(this->_stringStream, realName);
 		skipSpaces(this->_stringStream, sixthParam);
 	}
+}
+
+bool isRealNameValid(const std::string &realName)
+{
+	int	i;
+
+	i = 0;
+	while (realName[i])
+	{
+		if (!isspace(realName[i]) && !isalpha(realName[i]))
+			return (false);
+		i++;
+	}
+	return (true);
 }
 
 int Authenticator::checkUser(const Server &server)
@@ -162,10 +178,15 @@ int Authenticator::checkUser(const Server &server)
 	std::string sixthParam;
 
 	parseUser(firstParam, secondParam, thirdParam, fourthParam, fifthParam, sixthParam);
-	if (fifthParam.length() == 0)
+	this->toUpper(firstParam);
+	if (!fifthParam.length() || !fourthParam.length() || !thirdParam.length() || !secondParam.length())
 	{
-		this->toUpper(firstParam);
 		server.sendReply("461", firstParam + " : not enough parameters", this->_client);
+		return (false);
+	}
+	if (hasUnacceptedChars(secondParam) || hasUnacceptedChars(thirdParam) || hasUnacceptedChars(fourthParam) || !isRealNameValid(fifthParam))
+	{
+		server.sendReply("468", firstParam + " : Your username is not valid", this->_client);
 		return (false);
 	}
 	this->setUser(("~" + secondParam).c_str());
