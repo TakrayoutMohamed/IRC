@@ -301,11 +301,12 @@ void	Server::applyQuitCommand(int clientIndex)
 	Client &client = this->getData().find(_socketsFds[clientIndex].fd)->second;
 
 	quitMsg = ":" + nick + " QUIT :Client disconnected";
-	sendReply(client.ip, "QUIT closing connection...", client);
+	sendReply("ERROR", "QUIT : closing connection...", client);
 	close(client.fd); // close the file descriptor of the client 
+	sendBroadcastMsgToChannels(quitMsg);
+	//delete the user who disconnected from all channels
 	deleteClient(client.fd);// removes from the map of clients 
 	deleteClientFd(this->_socketsFds.begin() + clientIndex);// removes from the vector of file descriptors
-	sendBroadcastMsgToChannels(quitMsg);
 }
 
 void	Server::sendBroadcastMsgToChannels(std::string &quitMsg)
