@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:53 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/22 11:29:20 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/22 19:02:06 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ int INVITE_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client>
 int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::vector<Channels> &channels);
 int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client> &mapo, std::vector<Channels> &channels);
 void    HAKIM_COMMAND(int fd);
+int QUIT_COMMAND(Client &client, std::vector<Channels> &channels);
 
 //helper functions
 void    join_channel(std::vector<Channels> &channels, int index, Client &client);
