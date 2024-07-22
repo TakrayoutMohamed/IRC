@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:33:27 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/20 21:11:15 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/22 10:37:29 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,6 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
                 buffer = ":ircserver 404 " + mapo[fd].nickName + " " + channels[flag].channel_name + " :Cannot send to channel\r\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
             }
-            
         }
         else //the message is to a user
         {

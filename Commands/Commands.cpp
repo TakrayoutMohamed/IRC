@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/20 21:10:44 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/22 10:30:46 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -324,27 +324,27 @@ void    join_channel(std::vector<Channels> &channels, int index, Client &client)
     {
         buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " JOIN " + channels[index].channel_name + "\r\n";
         send(it->second, buffer.c_str(), buffer.length(), 0);
-        if (channels[index].topic){
-            buffer = ":ircserver 332 " + client.nickName + " " + channels[index].channel_name + " :" + channels[index].channel_topic;
-            send(it->second, buffer.c_str(), buffer.length(), 0);
-            buffer = ":ircserver 333 " + client.nickName + " " + channels[index].channel_name + " :" + myto_string(channels[index].topic_time) + " \r\n";
-            send(it->second, buffer.c_str(), buffer.length(), 0);
-        }
-        buffer = ":ircserver 353 " + client.nickName + " = " + channels[index].channel_name + " :";
-        for (std::map<std::string, int>::iterator ito = channels[index].members.begin(); ito != channels[index].members.end(); ito++)
-        {
-            buffer += ito->first;
-            std::map<std::string, int>::iterator nextIto = ito;
-            ++nextIto;
-            if (nextIto != channels[index].members.end()) {
-                buffer += " ";
-            }
-        }
-        buffer += "\r\n";
-        send(it->second, buffer.c_str(), buffer.length(), 0);
-        buffer = ":ircserver 366 " + client.nickName + " " + channels[index].channel_name + " :End of /NAMES list.\r\n";
-        send(it->second, buffer.c_str(), buffer.length(), 0);
     }
+    if (channels[index].topic){
+        buffer = ":ircserver 332 " + client.nickName + " " + channels[index].channel_name + " :" + channels[index].channel_topic + "\r\n";
+        send(client.fd, buffer.c_str(), buffer.length(), 0);
+        buffer = ":ircserver 333 " + client.nickName + " " + channels[index].channel_name + " :" + myto_string(channels[index].topic_time) + "\r\n";
+        send(client.fd, buffer.c_str(), buffer.length(), 0);
+    }
+    buffer = ":ircserver 353 " + client.nickName + " = " + channels[index].channel_name + " :";
+    for (std::map<std::string, int>::iterator ito = channels[index].members.begin(); ito != channels[index].members.end(); ito++)
+    {
+        buffer += ito->first;
+        std::map<std::string, int>::iterator nextIto = ito;
+        ++nextIto;
+        if (nextIto != channels[index].members.end()) {
+            buffer += " ";
+        }
+    }
+    buffer += "\r\n";
+    send(client.fd, buffer.c_str(), buffer.length(), 0);
+    buffer = ":ircserver 366 " + client.nickName + " " + channels[index].channel_name + " :End of /NAMES list.\r\n";
+    send(client.fd, buffer.c_str(), buffer.length(), 0);
 }
 
 void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std::vector<Channels> &channels)

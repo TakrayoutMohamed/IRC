@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:53 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/20 19:31:13 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/22 11:29:20 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,20 +24,6 @@
 #include <ctime>
 #include <sys/socket.h>
 # include "../server/Client.hpp"
-
-#define ERR_UNKNOWNCOMMAND 421
-#define ERR_NEEDMOREPARAMS 461
-#define ERR_NOSUCHCHANNEL 403
-#define ERR_TOOMANYCHANNELS 405
-#define ERR_BADCHANNELKEY 475
-#define ERR_BANNEDFROMCHAN 474
-#define ERR_CHANNELISFULL 471
-#define ERR_INVITEONLYCHAN 473
-#define ERR_BADCHANMASK 476
-#define RPL_TOPIC 332
-#define RPL_TOPICWHOTIME 333
-#define RPL_NAMREPLY 353
-#define RPL_ENDOFNAMES 366
 
 typedef struct parsing_command
 {
@@ -103,3 +89,4 @@ p_c splite_message(std::vector<std::string> &str);
 std::vector<std::string> split(std::string &str, char sep);
 std::string myto_string(long long value);
 std::vector<std::string> spliteCommand(std::string &str);
+std::string removeComma(std::string &str);
