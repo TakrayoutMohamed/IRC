@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/23 19:11:59 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/23 20:54:00 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -278,9 +278,6 @@ std::string getChannelModes(Channels &channel){
     }
     if (channel.is_invite_only){
         buffer1 += "+i";
-    }
-    if (channel.is_topic){
-        buffer1 += "+t";
     }
     buffer1 = buffer1 + " " + buffer2;
     std::cout << buffer1 << std::endl;
