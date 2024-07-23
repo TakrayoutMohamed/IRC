@@ -16,12 +16,13 @@
 # include <fcntl.h> /*fcntl()*/
 # include <signal.h>
 # include <ctime>
+#include <cerrno>
 # include <poll.h> /*poll()*/
 # include <vector>
 # include <map>
 # include "./Authenticator.hpp"
 # include "./../exception/Exceptions.hpp"
-# include "./../Commands/Commands.hpp"
+// # include "./../Commands/Commands.hpp"
 # include "./Client.hpp"
 
 class Server
@@ -37,7 +38,7 @@ class Server
 		struct sockaddr_in		_clientAddr, _serverAddr;
 		std::stringstream		_stringStream;
 		std::time_t				_createDate;
-		std::vector<Channels>	_channels;
+		// std::vector<Channels>	_channels;
 	/************************* Methods ************************/
 	public:
 		static void	runServer(const std::string &password, const std::string &port);
