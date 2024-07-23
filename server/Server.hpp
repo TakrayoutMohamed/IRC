@@ -21,6 +21,7 @@
 # include <map>
 # include "./Authenticator.hpp"
 # include "./../exception/Exceptions.hpp"
+# include "./../Commands/Commands.hpp"
 # include "./Client.hpp"
 
 class Server
@@ -36,6 +37,7 @@ class Server
 		struct sockaddr_in		_clientAddr, _serverAddr;
 		std::stringstream		_stringStream;
 		std::time_t				_createDate;
+		std::vector<Channels>	_channels;
 	/************************* Methods ************************/
 	public:
 		static void	runServer(const std::string &password, const std::string &port);
@@ -71,8 +73,6 @@ class Server
         int		deleteClientFd(std::vector<pollfd>::iterator __position);
         void	deleteClient(int fd);
         void	applyQuitCommand(int clientIndex);
-        void	sendBroadcastMsgToClients(std::string &quitMsg);
-        void	sendBroadcastMsgToChannels(std::string &quitMsg);
         void	clientCloseConnextion(const int clientIndex);
         bool	recieveMsg(const int fd, std::string &line);
 		void	clientWithEvent(const int clientIndex);

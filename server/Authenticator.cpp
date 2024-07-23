@@ -255,6 +255,7 @@ int Authenticator::checkClientAuthentication(Server &server, Client &client, std
 	{
 		client.isAuthenticated = true;
 		auth.welcomeMsg(server);
+		std::cout << ":" << client.ip << " Authenticated using nick name  :{" << client.nickName << "}" << std::endl;
 	}
 	return (true);
 }

@@ -2,19 +2,24 @@ NAME=ircserv
 CPP= c++ 
 CPPFLAGS=-Wall -Wextra -Werror -std=c++98
 RM=rm -f
+COMMANDSPATH=./Commands/
 SERVERPATH= ./server/
 EXCEPTIONPATH= ./exception/
 SRC= $(SERVERPATH)Server.cpp $(SERVERPATH)Authenticator.cpp $(SERVERPATH)Client.cpp \
 	 $(EXCEPTIONPATH)PasswordNotAcceptedException.cpp $(EXCEPTIONPATH)CouldNotBindServerSocketException.cpp\
 	 $(EXCEPTIONPATH)CouldNotListenServerSocketException.cpp $(EXCEPTIONPATH)NewClientNotAcceptedException.cpp \
 	 $(EXCEPTIONPATH)NonBlockServerSocketException.cpp $(EXCEPTIONPATH)OpenServerSocketException.cpp \
-	 $(EXCEPTIONPATH)PollCheckFdsEventsException.cpp $(EXCEPTIONPATH)SocketCouldNotReuseAddrException.cpp
+	 $(EXCEPTIONPATH)PollCheckFdsEventsException.cpp $(EXCEPTIONPATH)SocketCouldNotReuseAddrException.cpp \
+	 $(COMMANDSPATH)Bot.cpp $(COMMANDSPATH)Commands.cpp $(COMMANDSPATH)Invite.cpp $(COMMANDSPATH)Join.cpp \
+	 $(COMMANDSPATH)Kick.cpp $(COMMANDSPATH)Mode.cpp $(COMMANDSPATH)Privmsg.cpp $(COMMANDSPATH)Topic.cpp \
+	 $(COMMANDSPATH)Quit.cpp
 
 HEADERS= $(SERVERPATH)Server.hpp $(SERVERPATH)Authenticator.hpp $(SERVERPATH)Client.hpp \
 		 $(EXCEPTIONPATH)PasswordNotAcceptedException.hpp $(EXCEPTIONPATH)CouldNotBindServerSocketException.hpp\
 		 $(EXCEPTIONPATH)CouldNotListenServerSocketException.hpp $(EXCEPTIONPATH)NewClientNotAcceptedException.hpp \
 		 $(EXCEPTIONPATH)NonBlockServerSocketException.hpp $(EXCEPTIONPATH)OpenServerSocketException.hpp \
-		 $(EXCEPTIONPATH)PollCheckFdsEventsException.hpp $(EXCEPTIONPATH)SocketCouldNotReuseAddrException.hpp
+		 $(EXCEPTIONPATH)PollCheckFdsEventsException.hpp $(EXCEPTIONPATH)SocketCouldNotReuseAddrException.hpp \
+		 $(COMMANDSPATH)Commands.hpp
 
 SRC_MAIN = main.cpp
 

@@ -49,11 +49,11 @@ void Server::runServer(const std::string &password, const std::string &port)
 	{
 		int	readyFds;
 		Server serv(password, port);
-		std::cout << "---------Server is Running successfully---------" << std::endl;
 		serv.openSocket();
 		serv.bindSocket();
 		serv.listenSocket();
 		signal(SIGPIPE, SIG_IGN);
+		std::cout << "---------Server is Running successfully In port "<< port << " with password {"<< password << "}---------" << std::endl;
 		while (1)
 		{
 			try
@@ -69,11 +69,12 @@ void Server::runServer(const std::string &password, const std::string &port)
 					if (readyFds <= 0)
 						continue ;
 				}
-				for (size_t i = 1; i < serv._socketsFds.size(); i++)
+				for (size_t i = 1; i < serv._socketsFds.size() && readyFds >= 0; i++)
 				{
 					if (!(serv._socketsFds[i].revents & (POLLRDNORM)))
 						continue ;
 					serv.clientWithEvent(i);
+					readyFds--;
 				}
 			}
 			catch (std::exception &e)
@@ -267,9 +268,7 @@ int Server::saveClientData(void)
 	tmp.revents = 0;
 	if (gethostname(hostname, _SC_HOST_NAME_MAX))
 	{
-		std::string quitMsg = ": QUIT :Client disconnected";
 		std::cout << ":" << inet_ntoa(_clientAddr.sin_addr) << " QUIT :Client disconnected" << std::endl;
-		sendBroadcastMsgToChannels(quitMsg);
 		close(_clientFd);
 		return (1);
 	}
@@ -278,7 +277,7 @@ int Server::saveClientData(void)
 	client.ip = inet_ntoa(_clientAddr.sin_addr);
 	addData(_clientFd, client);
 	_socketsFds.push_back(tmp);
-	
+	std::cout << ":" << client.ip << " Client Connected" << std::endl;
     return 0;
 }
 
@@ -295,34 +294,25 @@ void	Server::deleteClient(int fd)
 
 void	Server::applyQuitCommand(int clientIndex)
 {
-	std::string nick;
-	std::string ip;
-	std::string quitMsg;
-	Client &client = this->getData().find(_socketsFds[clientIndex].fd)->second;
-
-	quitMsg = ":" + nick + " QUIT :Client disconnected";
+	std::map<int, Client>::iterator it = this->getData().find(this->_socketsFds[clientIndex].fd);
+	if (it == this->getData().end())
+		return ;
+	Client	&client = it->second;
 	sendReply("ERROR", "QUIT : closing connection...", client);
-	close(client.fd); // close the file descriptor of the client 
-	sendBroadcastMsgToChannels(quitMsg);
-	//delete the user who disconnected from all channels
-	deleteClient(client.fd);// removes from the map of clients 
-	deleteClientFd(this->_socketsFds.begin() + clientIndex);// removes from the vector of file descriptors
-}
-
-void	Server::sendBroadcastMsgToChannels(std::string &quitMsg)
-{
-	(void) quitMsg;
+	close(client.fd);
+	QUIT_COMMAND(client, this->_channels);
+	deleteClient(client.fd);
+	deleteClientFd(this->_socketsFds.begin() + clientIndex);
 }
 
 void Server::clientCloseConnextion(const int clientIndex)
 {
-	std::string nick;
-	std::string ip;
-	Client &client = this->getData().find(_socketsFds[clientIndex].fd)->second;
+	std::map<int, Client>::iterator it = this->getData().find(this->_socketsFds[clientIndex].fd);
 
-	nick = client.nickName;
-	ip = client.ip;
-	std::cout << "Client " << ip << " with nickname ["<< nick <<"] has closed the connection"  << std::endl;
+	if (it == this->getData().end())
+		return ;
+	Client	&client = it->second;
+	std::cout << "Client " << client.ip << " with nickname ["<< client.nickName <<"] has closed the connection"  << std::endl;
 	applyQuitCommand(clientIndex);
 }
 
@@ -333,7 +323,7 @@ bool Server::recieveMsg(const int fd, std::string &line)
 	bzero(msg, 1024);
 	if (recv(fd, msg, 1024, MSG_DONTWAIT) == -1 && (errno != EAGAIN && errno != EWOULDBLOCK))
 	{
-		std::cerr << "Error : thier is an error while recieving a message" << std::endl;
+		std::cerr << "Error : thier is an error while recieving a message with errno = " << errno << " from file desc nbr = " << fd << std::endl;
 		return (false);
 	}
 	line = msg;
@@ -343,8 +333,13 @@ bool Server::recieveMsg(const int fd, std::string &line)
 void Server::clientWithEvent(const int clientIndex)
 {
 	std::string line;
-	Client		&triggeredClient = this->getData().find(this->_socketsFds[clientIndex].fd)->second;
+	std::map<int, Client>::iterator it = this->getData().find(this->_socketsFds[clientIndex].fd);
 
+	if (it == this->getData().end())
+		return ;
+	Client		&triggeredClient = it->second;
+	if (triggeredClient.fd == -2)
+		return ;
 	if (!recieveMsg(triggeredClient.fd, line))
 		return ;
 	if (!this->handleCtrlD(line, triggeredClient.bufferString))
@@ -423,8 +418,7 @@ void Server::handleMultiLineFeed(Client &client, std::string &line, int clientIn
 			else if (isQuitCommand(line))
 				clientCloseConnextion(clientIndex);
 			else
-				this->sendReply(client.ip ,"you have been authenticated successfully", client);
-			//here YOU ARE GOING TO PASS THE LINE TO THE COMMANDS PART 
+				IS_COMMAND_VALID(client.fd, line, this->getData(), this->_channels);
 		}
 	}
 }
