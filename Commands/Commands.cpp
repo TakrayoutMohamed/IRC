@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/22 19:05:00 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/23 19:11:59 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,7 +160,7 @@ bool    is_admin(Channels &channel, std::string &name){
 
 void    remove_member(Channels &channel, std::string &name){
     for (std::map<std::string, int>::iterator it =  channel.members.begin();it != channel.members.end();it++){
-        if (it->first == name)
+        if (it->first == name || it->first == ("@" + name))
         {
             channel.members.erase(it);
             break ;

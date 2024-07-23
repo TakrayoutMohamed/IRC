@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:31:50 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/20 18:34:52 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/23 19:13:22 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,14 +46,14 @@ int KICK_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::ve
             buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " KICK " + cmds[1] + " " + cmds[2] + " :" + reason + "\r\n";
         }
         broad_cast(channels[flag], buffer, "", "");
-        channels[flag].members.erase(cmds[2]);
+        remove_member(channels[flag], cmds[2]);
         channels[flag].members_count--;
         kicked = 1;
     }
     if (is_admin(channels[flag], cmds[2])){
         for (size_t j = 0;j < channels[flag].admin_list.size();j++){
             if (cmds[2] == channels[flag].admin_list[j]){
-                channels[flag].admin_list[j].erase();
+                channels[flag].admin_list.erase(channels[flag].admin_list.begin()+j);
                 kicked = 1;
                 break ;
             }

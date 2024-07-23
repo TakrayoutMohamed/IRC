@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:30:58 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/20 21:11:41 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/23 18:55:35 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,7 +124,7 @@ int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std
                     }
                     else if (!strncmp(&buffer1[i], "+k", 2)){
                         if (channels[flag].is_key){
-                            buffer = ":ircserver 467 " + client.nickName + " " + channels[flag].channel_name + " ::Channel key already set\r\n";
+                            buffer = ":ircserver 467 " + client.nickName + " " + channels[flag].channel_name + " :Channel key already set\r\n";
                             send(fd, buffer.c_str(), buffer.length(), 0);
                         }
                         else if (!channels[flag].is_key){
