@@ -1,4 +1,5 @@
 NAME=ircserv
+BOT=bot
 CPP= c++ 
 CPPFLAGS=-Wall -Wextra -Werror -std=c++98
 RM=rm -f
@@ -22,7 +23,7 @@ HEADERS= $(SERVERPATH)Server.hpp $(SERVERPATH)Authenticator.hpp $(SERVERPATH)Cli
 		 $(COMMANDSPATH)Commands.hpp
 
 SRC_MAIN = main.cpp
-
+SRC_BOT = bot.cpp
 	
 OBJ = $(SRC:.cpp=.o)
 OBJ_MAIN = $(SRC_MAIN:.cpp=.o)
@@ -38,13 +39,17 @@ $(NAME): $(OBJ_MAIN) $(OBJ)
 		@$(CPP) $(CPPFLAGS) -o $@ $(OBJ_MAIN) $(OBJ)
 		@echo "the files has ben archived successfully"
 
+$(BOT): $(OBJ_BOT)
+		@$(CPP) $(CPPFLAGS) -o $@ $(OBJ_BOT)
+		@echo "the files has ben archived successfully"
+
 %.o: %.cpp $(HEADERS)
 		@$(CPP) $(CPPFLAGS) -o $@ -c $<
 		@echo "the file $@ has been created from $<"
 
 
 clean:
-		@$(RM) $(OBJ) $(OBJ_TDD) $(OBJ_MAIN)
+		@$(RM) $(OBJ) $(OBJ_TDD) $(OBJ_MAIN) $(OBJ_BOT)
 		@echo "all the .o has been deleted successfully"
 fclean: clean
 		@$(RM) $(NAME)
@@ -52,7 +57,7 @@ fclean: clean
 	
 re: fclean all
 
-.PHONY : clean $(NAME) all fclean re
+.PHONY : clean $(NAME) $(BOT) all fclean re
 # /////////////////////////////////
 test:$(OBJ_TDD) $(OBJ) 
 		@$(CPP) $(CPPFLAGS) -o $@ $(OBJ_TDD) $(OBJ) 

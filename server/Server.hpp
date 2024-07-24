@@ -8,7 +8,7 @@
 # include <limits.h>      /* for OPEN_MAX */
 # include <iostream>
 # include <unistd.h> /*close()*/
-# include <string.h>
+# include <cstring>
 # include <sys/socket.h> /*socket() , bind(), listen(), accept()*/
 # include <arpa/inet.h> /*htons*/
 # include <netinet/in.h> /*sockaddr_in*/
