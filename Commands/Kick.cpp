@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:31:50 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/23 19:13:22 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/25 17:38:51 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ int KICK_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::ve
     int flag = -1;
     std::string buffer;
     std::string reason;
-    if (cmds.size() < 3)
+    if (cmds.size() < 3 || (cmds.size() == 3 && cmds[2] == ":"))
     {
         buffer = ":ircserver 461 " + client.nickName + " " + cmds[0] + " :Not enough parameters\r\n";
         send(fd, buffer.c_str(), buffer.length(), 0);
