@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Mode.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/17 07:30:58 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/23 18:55:35 by mel-jira         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Commands.hpp"
 
 int     MODE_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::vector<Channels> &channels){

@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Invite.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/17 07:32:15 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/20 21:11:30 by mel-jira         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Commands.hpp"
 
 int INVITE_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client> &mapo, std::vector<Channels> &channels){

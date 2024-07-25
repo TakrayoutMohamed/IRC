@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Join.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/17 07:34:34 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/20 19:21:40 by mel-jira         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Commands.hpp"
 
 int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::vector<Channels> &channels)

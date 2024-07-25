@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Bot.cpp                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/17 07:34:00 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/25 16:48:55 by mel-jira         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Commands.hpp"
 
 std::string getRandomLine(const std::vector<std::string>& lines) {
@@ -19,8 +7,9 @@ std::string getRandomLine(const std::vector<std::string>& lines) {
 
 void    HAKIM_COMMAND(int fd){
     std::string buffer;
-    std::ifstream inputFile("info.txt");
-    if (inputFile.is_open()){
+    std::ifstream inputFile;
+    inputFile.open("Commands/info.txt");
+    if (!inputFile.is_open()){
         std::cerr << "Error opening file." << std::endl;
         return ;
     }
@@ -37,7 +26,8 @@ void    HAKIM_COMMAND(int fd){
     }
     srand(static_cast<unsigned int>(time(0)));
     std::string randomLine = getRandomLine(lines);
-    buffer = ":Bot el-hakim say: " + randomLine + "\r\n";
+    buffer = ":Bot el-hakim say: " + randomLine + "";
+    buffer = ":el-hakim!~elHakim@somewhere PRIVMSG - :"+ buffer + "\r\n";
     send(fd, buffer.c_str(), buffer.length(), 0);
     std::cout << "Random Line: " << randomLine << std::endl;
 }

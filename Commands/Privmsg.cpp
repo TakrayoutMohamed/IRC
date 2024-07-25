@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Privmsg.cpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/17 07:33:27 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/23 18:06:03 by mel-jira         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Commands.hpp"
 
 int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client> &mapo, std::vector<Channels> &channels){

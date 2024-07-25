@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Commands.hpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/21 10:25:53 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/22 19:02:06 by mel-jira         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
 #include <string>
@@ -23,6 +11,7 @@
 # include <string>
 #include <ctime>
 #include <sys/socket.h>
+#include "Channels.hpp"
 # include "../server/Client.hpp"
 
 typedef struct parsing_command
@@ -31,28 +20,6 @@ typedef struct parsing_command
     std::vector<std::string> channels_name;
     std::vector<std::string> channels_key;
 }   p_c;
-
-class Channels
-{
-    public:
-        std::string                 channel_name;
-        bool                        is_invite_only;         //invite
-        std::vector<std::string>    invite_list;
-        bool                        is_limit;               //limit
-        size_t                      members_limit;
-        size_t                      members_count;
-        bool                        is_topic;               //topic
-        std::string                 channel_topic;
-        bool                        topic;
-        long long                   topic_time;
-        std::string                 who_set_topic;
-        bool                        is_key;                 //key
-        std::string                 channel_key;
-        std::vector<std::string>    admin_list;
-        std::map<std::string, int>  members;
-        long long                   channel_create_time;
-        Channels();
-};
 
 //important commands
 
