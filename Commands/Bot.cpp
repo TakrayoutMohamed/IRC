@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:34:00 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/17 07:34:13 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/25 16:48:55 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ std::string getRandomLine(const std::vector<std::string>& lines) {
 void    HAKIM_COMMAND(int fd){
     std::string buffer;
     std::ifstream inputFile("info.txt");
-    if (!inputFile){
+    if (inputFile.is_open()){
         std::cerr << "Error opening file." << std::endl;
         return ;
     }
@@ -31,6 +31,10 @@ void    HAKIM_COMMAND(int fd){
         lines.push_back(line);
     }
     inputFile.close();
+    if (lines.empty()) {
+        std::cerr << "The file is empty." << std::endl;
+        return;
+    }
     srand(static_cast<unsigned int>(time(0)));
     std::string randomLine = getRandomLine(lines);
     buffer = ":Bot el-hakim say: " + randomLine + "\r\n";

@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/24 22:20:19 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/25 17:27:00 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -218,12 +218,13 @@ void    broad_cast(Channels &channel, std::string error, std::string mid, std::s
 }
 
 bool imInChannel(Channels &channel, std::string &name){
+    std::string admin = "@" + name;
     for (size_t i = 0;i < channel.admin_list.size();i++){
         if (name == channel.admin_list[i]){
             return (true);
         }
     }
-    if (channel.members.find(name) != channel.members.end()){
+    if (channel.members.find(name) != channel.members.end() || channel.members.find(admin) != channel.members.end()){
         return (true);
     }
     return (false);
