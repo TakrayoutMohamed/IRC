@@ -300,7 +300,7 @@ void	Server::applyQuitCommand(int clientIndex)
 	Client	&client = it->second;
 	sendReply("ERROR", "QUIT : closing connection...", client);
 	close(client.fd);
-	// QUIT_COMMAND(client, this->_channels);
+	QUIT_COMMAND(client, this->_channels);
 	deleteClient(client.fd);
 	deleteClientFd(this->_socketsFds.begin() + clientIndex);
 }
@@ -417,8 +417,8 @@ void Server::handleMultiLineFeed(Client &client, std::string &line, int clientIn
 				this->sendReply("462", "You may not reregister", client);
 			else if (isQuitCommand(line))
 				clientCloseConnextion(clientIndex);
-			// else
-				// IS_COMMAND_VALID(client.fd, line, this->getData(), this->_channels);
+			else
+				IS_COMMAND_VALID(client.fd, line, this->getData(), this->_channels);
 		}
 	}
 }
