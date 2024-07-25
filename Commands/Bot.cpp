@@ -1,20 +1,10 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Bot.cpp                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mohtakra <mohtakra@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/17 07:34:00 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/25 20:30:42 by mohtakra         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Commands.hpp"
+
 std::string getRandomLine(const std::vector<std::string>& lines) {
     int index = rand() % lines.size();
     return lines[index];
 }
+
 void    HAKIM_COMMAND(int fd){
     std::string buffer;
     std::ifstream inputFile;
@@ -39,5 +29,4 @@ void    HAKIM_COMMAND(int fd){
     buffer = ":Bot el-hakim say: " + randomLine + "";
     buffer = ":el-hakim!~elHakim@somewhere PRIVMSG - :"+ buffer + "\r\n";
     send(fd, buffer.c_str(), buffer.length(), 0);
-    // std::cout << "Random Line: " << randomLine << std::endl;
 }

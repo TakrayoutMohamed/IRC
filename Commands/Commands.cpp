@@ -1,16 +1,18 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Commands.cpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/21 10:25:55 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/25 17:40:35 by mel-jira         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Commands.hpp"
+Channels::Channels()
+{
+    channel_name = "";
+    channel_topic = "No topic is set.";
+    channel_key = "";
+    is_invite_only = false;
+    is_limit = false;
+    is_key = false;
+    is_topic = false;
+    topic = false;
+    members_limit = 0;
+    members_count = 0;
+    topic_time = 0;
+}
 
 std::vector<std::string> spliteCommand(std::string &str){
     std::vector<std::string> names;
@@ -28,21 +30,6 @@ std::string myto_string(long long value){
     std::stringstream oss;
     oss << value;
     return oss.str();
-}
-
-Channels::Channels()
-{
-    channel_name = "";
-    channel_topic = "No topic is set.";
-    channel_key = "";
-    is_invite_only = false;
-    is_limit = false;
-    is_key = false;
-    is_topic = false;
-    topic = false;
-    members_limit = 0;
-    members_count = 0;
-    topic_time = 0;
 }
 
 std::vector<std::string> split(std::string &str, char sep){
