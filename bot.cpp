@@ -13,6 +13,8 @@ int main(int argc, char **argv)
         return (1);
 	}
 	std::string serverAddress = argv[1];
+	struct sockaddr_in	botAddr;
+	socklen_t			addrLen;
 	int port = atoi(argv[2]);
 	std::string password = argv[3];
 	int botSocket;
@@ -26,10 +28,6 @@ int main(int argc, char **argv)
 		std::cerr << "Could not open the socket for the bot ." << std::endl;
 		return (1);
 	}
-	if (fcntl(botSocket, F_SETFL, O_NONBLOCK) == -1)
-		throw NonBlockServerSocketException();
-	struct sockaddr_in	botAddr;
-	socklen_t			addrLen;
 
 	addrLen = sizeof(botAddr);
 	bzero(&botAddr, addrLen);
@@ -45,12 +43,10 @@ int main(int argc, char **argv)
 			std::cerr << "Address you entered for server not accepted!!" << std::endl;
 		return (close(botSocket), 1);
 	}
-	std::string str = "pass " + password + "\r\n";
+	if (fcntl(botSocket, F_SETFL, O_NONBLOCK) == -1)
+		throw NonBlockServerSocketException();
+	std::string str = "pass " + password + "\nnick bot\nuser bot bot bot bot\r\n";
 	send(botSocket, str.c_str(), str.length(),0);
-	char str1[111] = "nick alva\r\n";
-	send(botSocket, str1, strlen(str1), 0);
-	char str2[111] = "user aaaa aaaa aaaa aaaaa\r\n";
-	send(botSocket, str2, strlen(str2), 0);
 	char str3[111] = "usssss\r\n";
 	send(botSocket, str3, strlen(str3), 0);
 	std::cout << "the bot is running ..." << std::endl;
@@ -66,15 +62,14 @@ int main(int argc, char **argv)
 		}
 		else if (ret >= 1)
 		{
-			std::cout << "recieved msg is ["<< recieveMsg << "]" << std::endl;
-			std::cout << "return = "<< ret << "" << std::endl;
+			std::cout << recieveMsg << std::endl;
 
 		}
-		if (ret == 0)
-		{
-			std::cout << "return = "<< ret << "" << std::endl;
-			std::cout << "errno = "<< errno << "" << std::endl;
-		}
+		// if (ret == 0)
+		// {
+		// 	std::cout << "return = "<< ret << "" << std::endl;
+		// 	std::cout << "errno = "<< errno << "" << std::endl;
+		// }
 		errno = 0;
 	}
 	return (0);

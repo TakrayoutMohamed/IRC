@@ -27,6 +27,7 @@ SRC_BOT = bot.cpp
 	
 OBJ = $(SRC:.cpp=.o)
 OBJ_MAIN = $(SRC_MAIN:.cpp=.o)
+OBJ_BOT = $(SRC_BOT:.cpp=.o)
 
 
 TDDPATH= ./TDD/
@@ -39,8 +40,8 @@ $(NAME): $(OBJ_MAIN) $(OBJ)
 		@$(CPP) $(CPPFLAGS) -o $@ $(OBJ_MAIN) $(OBJ)
 		@echo "the files has ben archived successfully"
 
-$(BOT): $(OBJ_BOT)
-		@$(CPP) $(CPPFLAGS) -o $@ $(OBJ_BOT)
+$(BOT): $(OBJ_BOT) $(OBJ)
+		@$(CPP) $(CPPFLAGS) -o $@ $(OBJ_BOT) $(OBJ)
 		@echo "the files has ben archived successfully"
 
 %.o: %.cpp $(HEADERS)
