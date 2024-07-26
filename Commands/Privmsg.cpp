@@ -16,7 +16,7 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
         send(fd, buffer.c_str(), buffer.length(), 0);
         return 1;
     }
-    for (size_t i = 0; i < command.channels_name.size();i++) //iterate on the channels or names
+    for (size_t i = 0; i < command.channels_name.size();i++)
     {
         flag = -1;
         if ((command.channels_name[i][0] == '#' || command.channels_name[i][0] == '&'))
@@ -32,7 +32,7 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
                 for (std::map<std::string, int>::iterator it =  channels[flag].members.begin();it != channels[flag].members.end();it++){
                     if (it->second == fd)
                         continue ;
-                    buffer = ":" + mapo[fd].nickName + "!" + mapo[fd].userName + "@" + mapo[fd].ip + " PRIVMSG " + cmds[1] + " :"+ buffer1 + "\r\n";
+                    buffer = ":" + mapo[fd].nickName + "!" + mapo[fd].userName + "@" + mapo[fd].ip + " PRIVMSG " + cmds[1] + " :" + buffer1 + "\r\n";
                     send(it->second, buffer.c_str(), buffer.length(), 0);
                 }
             }
@@ -41,11 +41,11 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
                 send(fd, buffer.c_str(), buffer.length(), 0);
             }
         }
-        else //the message is to a user
+        else
         {
             flag = 0;
-            for (std::map<int, Client>::iterator ito = mapo.begin(); ito != mapo.end(); ito++){ //search for the user in the server members
-                if (ito->second.nickName == command.channels_name[i]){ //if u find him send him the message
+            for (std::map<int, Client>::iterator ito = mapo.begin(); ito != mapo.end(); ito++){
+                if (ito->second.nickName == command.channels_name[i]){
                     flag = 1;
                     buffer1 = command.channels_key[0];
                     buffer = ":" + mapo[fd].nickName + "!" + mapo[fd].userName + "@" + mapo[fd].ip + " PRIVMSG " + command.channels_name[i] + " :" + buffer1 + "\r\n";
@@ -53,8 +53,8 @@ int PRIVMSG_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client
                     break;
                 }
             }
-            if (!flag){ //if u didn't find him send this error
-                buffer = ":ircserver 401 " + mapo[fd].nickName + " " + command.channels_name[i] + " ::No such nick\r\n";
+            if (!flag){
+                buffer = ":ircserver 401 " + mapo[fd].nickName + " " + command.channels_name[i] + " :No such nick/channel\r\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
             }
         }

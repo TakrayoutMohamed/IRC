@@ -6,28 +6,28 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
     int flag = -1;
     p_c command = splite_str(cmds);
     std::string buffer;
-    if (cmds.size() < 2) //check the size if there is something after join
+    if (cmds.size() < 2)
     {
         buffer = ":ircserver 461 " + client.nickName + " " + cmds[0] + " :Not enough parameters\r\n";
         send(fd, buffer.c_str(), buffer.length(), 0);
         return 1;
     }
-    for (size_t i = 0; i < command.channels_name.size();i++) //iterate on the channel names
+    for (size_t i = 0; i < command.channels_name.size();i++)
     {
         flag = -1;
-        if ((command.channels_name[i][0] == '#' || command.channels_name[i][0] == '&') && command.channels_name[i].size() > 1 && !strchr(" \a\0\n\r,", command.channels_name[i][1])) // check if this channel is valid first
+        if ((command.channels_name[i][0] == '#' || command.channels_name[i][0] == '&') && command.channels_name[i].size() > 1 && !strchr(" \a\0\n\r,", command.channels_name[i][1]))
         {
             flag = doesChannelExist(channels, command.channels_name[i]);
-            if (flag == -1) // the channel doesn't exist create it and join it
+            if (flag == -1)
                 create_join_channel(channels, command, i, client);
             else {
-                if (in_channel(channels[flag], client.nickName)) // most important check if u already in the channel
-                    continue ; // if we return that's because our user is in the channel and we should do nothing
-                if (isHeInvited(channels[flag], client.nickName)){//check if he in the invite list if yes he need to join the channel immediately
-                    join_channel(channels, flag, client); // he was invited he should join no matter what
+                if (in_channel(channels[flag], client.nickName))
+                    continue ;
+                if (isHeInvited(channels[flag], client.nickName)){
+                    join_channel(channels, flag, client);
                     continue ;
                 }
-                if (channels[flag].is_invite_only){ // check if the channel is invite only
+                if (channels[flag].is_invite_only){
                     buffer = ":ircserver 473 " + client.nickName + " " + channels[flag].channel_name + " :Cannot join channel, you must be invited (+i)\r\n";
                     send(fd, buffer.c_str(), buffer.length(), 0);
                     continue ;
@@ -72,7 +72,7 @@ int    JOIN_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std:
             }
         }
         else{
-            buffer = ":ircserver 403 " + cmds[0] + " :No such channel\r\n";
+            buffer = ":ircserver 403 " + client.nickName + " " + command.channels_name[i] + " :No such channel\r\n";
             send(fd, buffer.c_str(), buffer.length(), 0);
         }
     }

@@ -24,14 +24,21 @@ int KICK_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::ve
         if (cmds.size() == 3){
             buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " KICK " + cmds[1] + " " + cmds[2] + " :" + cmds[2] + "\r\n";
         }
-        else{
-            for (size_t i = 3;i < cmds.size();i++){
-                reason += cmds[i];
-                if (i+1 < cmds.size())
-                    reason += " ";
+        else if (cmds.size() >= 4 && cmds[3][0] == ':'){
+            for (size_t i = 3; i < cmds.size();i++){
+                if (i == 3)
+                    reason += removeComma(cmds[i]);
+                else
+                {
+                    reason += cmds[i];
+                    if (i+1 < cmds.size())
+                        reason += " ";
+                }
             }
             buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " KICK " + cmds[1] + " " + cmds[2] + " :" + reason + "\r\n";
         }
+        else if (cmds.size() >= 4 && cmds[3][0] != ':')
+            buffer = ":" + client.nickName + "!" + client.userName + "@" + client.ip + " KICK " + cmds[1] + " " + cmds[2] + " :" + cmds[2] + "\r\n";
         broad_cast(channels[flag], buffer, "", "");
         remove_member(channels[flag], cmds[2]);
         channels[flag].members_count--;

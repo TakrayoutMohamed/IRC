@@ -262,13 +262,11 @@ std::string getChannelModes(Channels &channel){
         if (flag)
             buffer2 += " ";
         buffer2 += sizetToString(channel.members_limit);
-        std::cout << "limit is:" << sizetToString(channel.members_limit) << std::endl;;
     }
     if (channel.is_invite_only){
         buffer1 += "+i";
     }
     buffer1 = buffer1 + " " + buffer2;
-    std::cout << buffer1 << std::endl;
     return (buffer1);
 }
 
@@ -334,7 +332,6 @@ void    join_channel(std::vector<Channels> &channels, int index, Client &client)
 
 void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std::vector<Channels> &channels)
 {
-    // std::cout << "its my mistake" << std::endl;
     std::vector<std::string> cmds;
     cmds = spliteCommand(str);
     std::string cmd = cmds[0];
@@ -366,10 +363,8 @@ void IS_COMMAND_VALID(int fd, std::string &str, std::map<int, Client> &mapo, std
         }
         else
         {
-            //:tngnet.nl.quakenet.org 421 reda1 sdhdfh :Unknown command
             buffer = ":ircserver 421 " + mapo[fd].nickName + " " + cmds[0] + " :Unknown command\r\n";
             send(fd, buffer.c_str(), buffer.length(), 0);
         }
     }
-    // std::cout << "its n;'t mistake" << std::endl;
 }

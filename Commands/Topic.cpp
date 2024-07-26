@@ -18,7 +18,7 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
             send(fd, buffer.c_str(), buffer.length(), 0);
             return 0;
         }
-        if (cmds.size() == 2){ //show the topic
+        if (cmds.size() == 2){
             if (channels[flag].topic){
                 buffer = ":ircserver 332 " + client.nickName + " " + channels[flag].channel_name + " :" + channels[flag].channel_topic + " \r\n";
                 send(fd, buffer.c_str(), buffer.length(), 0);
@@ -31,7 +31,7 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
             }
             return 0;
         }
-        if (channels[flag].is_topic){// only mod can set it
+        if (channels[flag].is_topic){
             if (is_admin(channels[flag], client.nickName)){
                 if(cmds.size() >= 3){
                     if (cmds.size() >= 3 && cmds[2][0] == ':'){
@@ -65,7 +65,7 @@ int TOPIC_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::v
                 send(fd, buffer.c_str(), buffer.length(), 0);
             }
         }
-        else{ //anyone can set the topic
+        else{
             if(cmds.size() >= 3){
                 if (cmds.size() >= 3 && cmds[2][0] == ':'){
                     for (size_t i = 2;i < cmds.size();i++){
