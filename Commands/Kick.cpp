@@ -62,7 +62,7 @@ int KICK_COMMAND(int fd, std::vector<std::string> &cmds, Client &client, std::ve
         }
     }
     if (!kicked){
-        buffer = ":ircserver 441 " + cmds[2] + " " + channels[flag].channel_name + " They aren't on that channel\r\n";
+        buffer = ":ircserver 441 " + cmds[2] + " " + channels[flag].channel_name + " :They aren't on that channel\r\n";
         send(fd, buffer.c_str(), buffer.length(), 0);
     }
     return 0;

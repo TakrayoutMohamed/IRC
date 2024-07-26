@@ -6,7 +6,7 @@
 /*   By: mel-jira <mel-jira@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/17 07:32:15 by mel-jira          #+#    #+#             */
-/*   Updated: 2024/07/26 11:30:24 by mel-jira         ###   ########.fr       */
+/*   Updated: 2024/07/26 12:50:11 by mel-jira         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ int INVITE_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client>
             {
                 flag = check_channel(fd, channels, cmds[2], mapo[fd]);
                 if (in_channel(channels[flag], cmds[1])){
-                    buffer = ":ircserver 443 " + mapo[fd].nickName + " " + cmds[1] + " " + channels[flag].channel_name + " is already on channel\r\n";
+                    buffer = ":ircserver 443 " + mapo[fd].nickName + " " + cmds[1] + " " + channels[flag].channel_name + " :is already on channel\r\n";
                     send(fd, buffer.c_str(), buffer.length(), 0);
                 }
                 else
@@ -36,7 +36,7 @@ int INVITE_COMMAND(int fd, std::vector<std::string> &cmds, std::map<int, Client>
                         send(get_fd(mapo, cmds[1]), buffer.c_str(), buffer.length(), 0);
                     }
                     else{
-                        buffer = ":ircserver 482 " + mapo[fd].nickName + " " + channels[flag].channel_name + " You're not channel operator\r\n";
+                        buffer = ":ircserver 482 " + mapo[fd].nickName + " " + channels[flag].channel_name + " :You're not channel operator\r\n";
                         send(fd, buffer.c_str(), buffer.length(), 0);
                     }
                 }
